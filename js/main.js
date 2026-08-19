@@ -160,4 +160,34 @@
   } catch (err) {
     // ignorējam — parametrs nav obligāts
   }
+
+  // 8. Frēzes ceļa animācija (hero) — oranžais punkts ceļo pa ceļu
+  var frezPath = document.getElementById('frez-path');
+  var frezDot = document.getElementById('frez-dot');
+  if (frezPath && frezDot && typeof frezPath.getTotalLength === 'function') {
+    var pathLength = frezPath.getTotalLength();
+
+    function placeFrezDot(distance) {
+      var point = frezPath.getPointAtLength(distance);
+      frezDot.setAttribute('cx', point.x.toFixed(2));
+      frezDot.setAttribute('cy', point.y.toFixed(2));
+    }
+
+    var reduceMotion = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (pathLength > 0 && !reduceMotion) {
+      var cycleDuration = 9000; // ms pilnam ceļa aplim
+      var frezStart = null;
+      function frezStep(timestamp) {
+        if (frezStart === null) frezStart = timestamp;
+        var elapsed = (timestamp - frezStart) % cycleDuration;
+        placeFrezDot((elapsed / cycleDuration) * pathLength);
+        requestAnimationFrame(frezStep);
+      }
+      requestAnimationFrame(frezStep);
+    } else if (pathLength > 0) {
+      placeFrezDot(0); // statisks punkts sākumā
+    }
+  }
 })();
