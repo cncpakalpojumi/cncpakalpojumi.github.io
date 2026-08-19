@@ -148,4 +148,16 @@
   // 6. Gads footerī
   var yearEl = document.getElementById('gads');
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+  // 7. Kalkulatora pārnese — aizpilda ziņojumu no URL parametra ?zinojums=
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var prefilled = params.get('zinojums');
+    if (prefilled) {
+      var prefilledMsg = document.getElementById('kontakti-zinojums');
+      if (prefilledMsg) prefilledMsg.value = prefilled;
+    }
+  } catch (err) {
+    // ignorējam — parametrs nav obligāts
+  }
 })();

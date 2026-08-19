@@ -880,3 +880,43 @@
 @media (max-width: 40em) {
   .site-footer__grid { grid-template-columns: 1fr; }
 }
+
+/* --------------------------------------------------------------------------
+   PAR MUMS — saraksts ar akcenta svītriņām un divu kolonnu režģis
+   -------------------------------------------------------------------------- */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.dash-list {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.dash-list li {
+  position: relative;
+  padding-left: 1.125rem;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.dash-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.75em;
+  width: 8px;
+  height: 2px;
+  background-color: var(--accent);
+}
+
+@media (max-width: 40em) {
+  .about-grid { grid-template-columns: 1fr; }
+}
