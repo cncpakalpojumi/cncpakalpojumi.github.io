@@ -259,17 +259,13 @@
   height: auto;
 }
 
-.hero__gcode-text {
+.hero__gcode-letters {
   fill: none;
   stroke: var(--text-muted);
-  stroke-width: 2.5;
-  stroke-dasharray: 4 6;
+  stroke-width: 6;
+  stroke-dasharray: 7 8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: 88px;
-  letter-spacing: 0.12em;
 }
 
 .hero__gcode-dot {
