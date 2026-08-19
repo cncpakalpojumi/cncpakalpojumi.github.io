@@ -394,6 +394,13 @@
   background-color: var(--accent);
 }
 
+/* Sekcijas piezīme (mazs, pieklusināts teksts) */
+.section-note {
+  margin-top: var(--space-5);
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+}
+
 /* --------------------------------------------------------------------------
    7. FORMAS
    -------------------------------------------------------------------------- */
