@@ -59,6 +59,11 @@
 .btn--sm { padding: 0.5rem 0.9375rem; font-size: var(--fs-small); }
 .btn--block { width: 100%; }
 
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Saite ar bultiņu ("Skatīt visus darbus →") */
 .link-arrow {
   display: inline-flex;
@@ -278,7 +283,31 @@
 }
 
 /* --------------------------------------------------------------------------
-   5. FAKTU JOSLA
+   5. LAPAS GALVENE (apakšlapām)
+   -------------------------------------------------------------------------- */
+.page-hero {
+  background-color: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.page-hero__inner {
+  padding-block: var(--space-7) var(--space-6);
+}
+
+.page-hero__title {
+  margin-top: var(--space-3);
+  max-width: 20ch;
+}
+
+.page-hero__lead {
+  margin-top: var(--space-4);
+  font-size: 1.0625rem;
+  color: var(--text-muted);
+  max-width: 56ch;
+}
+
+/* --------------------------------------------------------------------------
+   6. FAKTU JOSLA
    -------------------------------------------------------------------------- */
 .facts {
   border-top: 1px solid var(--border);
@@ -696,4 +725,95 @@
   .portfolio-grid { grid-template-columns: 1fr; }
 
   .hero__actions .btn { flex: 1 1 100%; }
+}
+
+/* --------------------------------------------------------------------------
+   FOOTER
+   -------------------------------------------------------------------------- */
+.site-footer {
+  background-color: var(--bg-muted);
+  border-top: 1px solid var(--border);
+}
+
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr;
+  gap: var(--space-6);
+  padding-block: var(--space-7);
+}
+
+.site-footer__desc {
+  margin-top: var(--space-3);
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  max-width: 34ch;
+}
+
+.site-footer__heading {
+  font-size: var(--fs-tiny);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.site-footer__nav,
+.site-footer__contacts {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.site-footer__link {
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+.site-footer__link:hover { color: var(--accent-hover); }
+
+.site-footer__contact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+.site-footer__contact svg { flex-shrink: 0; }
+
+.site-footer__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding-block: var(--space-5);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-tiny);
+  color: var(--text-faint);
+}
+
+.site-footer__social {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.site-footer__social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+.site-footer__social a:hover {
+  color: var(--accent-hover);
+  border-color: var(--border-strong);
+}
+
+@media (max-width: 40em) {
+  .site-footer__grid { grid-template-columns: 1fr; }
 }

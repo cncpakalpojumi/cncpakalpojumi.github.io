@@ -212,8 +212,105 @@
     </section>
 
     <!-- ====================================================================
-         5. CENU KALKULATORS — pievienos nākamajā solī
+         5. CENU KALKULATORS
          ==================================================================== -->
+    <section class="section calc-section" id="kalkulators" aria-labelledby="kalkulators-virsraksts">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Cenu kalkulators</span>
+          <h2 id="kalkulators-virsraksts">Aprēķini orientējošo cenu</h2>
+          <p class="lead">
+            Ievadi detaļas parametrus un uzreiz redzēsi aptuveno cenu — bez
+            e-pastiem un gaidīšanas.
+            <a href="kalkulators.html">Detalizētāka versija ar aprēķina skaidrojumu →</a>
+          </p>
+        </div>
+
+        <div class="calc">
+          <div class="calc__inner">
+            <form class="calc__form" id="cenu-kalkulators" novalidate>
+              <div class="calc__fields">
+                <div class="field field--full">
+                  <label class="label" for="calc-material">Materiāls</label>
+                  <select class="select" id="calc-material" name="material">
+                    <option value="wood">Koks / MDF / Saplāksnis</option>
+                    <option value="plastic">Plastmasa / Akrils / Kompozīti</option>
+                    <option value="aluminum">Alumīnijs / Mīkstie metāli</option>
+                  </select>
+                  <span class="field__error" id="calc-material-error"></span>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="calc-length">Garums (mm)</label>
+                  <input class="input" type="number" id="calc-length" name="length"
+                         min="1" max="2500" step="1" inputmode="numeric" placeholder="piem., 600">
+                  <span class="field__error" id="calc-length-error"></span>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="calc-width">Platums (mm)</label>
+                  <input class="input" type="number" id="calc-width" name="width"
+                         min="1" max="1300" step="1" inputmode="numeric" placeholder="piem., 400">
+                  <span class="field__error" id="calc-width-error"></span>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="calc-thickness">Biezums (mm)</label>
+                  <input class="input" type="number" id="calc-thickness" name="thickness"
+                         min="0.5" max="100" step="0.5" inputmode="decimal" placeholder="piem., 18">
+                  <span class="field__error" id="calc-thickness-error"></span>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="calc-quantity">Daudzums (gab.)</label>
+                  <input class="input" type="number" id="calc-quantity" name="quantity"
+                         min="1" max="10000" step="1" inputmode="numeric" value="1">
+                  <span class="field__error" id="calc-quantity-error"></span>
+                </div>
+
+                <div class="field field--full">
+                  <span class="label" id="calc-complexity-label">Apstrādes sarežģītība</span>
+                  <div class="calc__radio-group" role="radiogroup" aria-labelledby="calc-complexity-label">
+                    <label class="calc__radio">
+                      <input type="radio" name="complexity" value="simple" checked>
+                      <span>Vienkārša 2D kontūrgriešana</span>
+                    </label>
+                    <label class="calc__radio">
+                      <input type="radio" name="complexity" value="complex">
+                      <span>Sarežģīta forma, daudz detaļu</span>
+                    </label>
+                    <label class="calc__radio">
+                      <input type="radio" name="complexity" value="relief3d">
+                      <span>3D reljefs / gravējums</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <div class="calc__result" aria-live="polite">
+              <p class="calc__result-label">Aptuvenā cena</p>
+              <p class="calc__price" id="calc-price">—</p>
+              <p class="calc__hint" id="calc-hint">Ievadi detaļas izmērus, lai redzētu orientējošo cenu.</p>
+
+              <ul class="calc__breakdown" id="calc-breakdown" hidden>
+                <li class="calc__breakdown-item"><span>Vienas detaļas cena</span><strong id="calc-unit">—</strong></li>
+                <li class="calc__breakdown-item"><span>Aptuvenais mašīnlaiks</span><strong id="calc-hours">—</strong></li>
+                <li class="calc__breakdown-item"><span>Griešanas gājieni</span><strong id="calc-passes">—</strong></li>
+              </ul>
+
+              <div class="calc__warning" id="calc-warning" role="alert"></div>
+
+              <p class="calc__disclaimer">Šī ir orientējoša tāme. Precīzu cenu apstiprināsim pēc jūsu faila un tehnisko prasību izskatīšanas.</p>
+
+              <div class="calc__submit">
+                <button type="button" class="btn btn--secondary btn--block" id="calc-submit" disabled>Nosūtīt šo pieprasījumu</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- ====================================================================
          6. "KĀ NOTIEK PROCESS" — pievienos nākamajā solī
@@ -237,5 +334,6 @@
        ====================================================================== -->
 
   <script src="js/main.js" defer></script>
+  <script src="js/kalkulators.js" defer></script>
 </body>
 </html>

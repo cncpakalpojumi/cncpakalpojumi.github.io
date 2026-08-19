@@ -210,3 +210,198 @@
     formatPriceRange: formatPriceRange
   };
 });
+
+/* ==========================================================================
+   UI SAISTE — saista aprēķina loģiku ar kalkulatora formu lapā.
+   Darbojas, ja lapā ir <form id="cenu-kalkulators">.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  var form = document.getElementById('cenu-kalkulators');
+  if (!form || typeof window.CNCCalculator === 'undefined') return;
+
+  var calc = window.CNCCalculator;
+
+  var materialEl = document.getElementById('calc-material');
+  var thicknessEl = document.getElementById('calc-thickness');
+  var lengthEl = document.getElementById('calc-length');
+  var widthEl = document.getElementById('calc-width');
+  var quantityEl = document.getElementById('calc-quantity');
+
+  var priceEl = document.getElementById('calc-price');
+  var hintEl = document.getElementById('calc-hint');
+  var breakdownEl = document.getElementById('calc-breakdown');
+  var unitEl = document.getElementById('calc-unit');
+  var hoursEl = document.getElementById('calc-hours');
+  var passesEl = document.getElementById('calc-passes');
+  var warningEl = document.getElementById('calc-warning');
+  var submitBtn = document.getElementById('calc-submit');
+
+  var fieldElements = {
+    material: materialEl,
+    thickness: thicknessEl,
+    length: lengthEl,
+    width: widthEl,
+    quantity: quantityEl
+  };
+
+  var fieldErrorIds = {
+    material: 'calc-material-error',
+    thickness: 'calc-thickness-error',
+    length: 'calc-length-error',
+    width: 'calc-width-error',
+    quantity: 'calc-quantity-error'
+  };
+
+  function readInputs() {
+    var checked = form.querySelector('input[name="complexity"]:checked');
+    return {
+      material: materialEl.value,
+      complexity: checked ? checked.value : '',
+      thickness: thicknessEl.value,
+      length: lengthEl.value,
+      width: widthEl.value,
+      quantity: quantityEl.value
+    };
+  }
+
+  function clearErrors() {
+    form.querySelectorAll('.field__error').forEach(function (el) {
+      el.textContent = '';
+      el.classList.remove('is-visible');
+    });
+    Object.keys(fieldElements).forEach(function (key) {
+      var el = fieldElements[key];
+      if (el) el.setAttribute('aria-invalid', 'false');
+    });
+    if (warningEl) {
+      warningEl.textContent = '';
+      warningEl.classList.remove('is-visible');
+    }
+  }
+
+  function renderErrors(errors) {
+    clearErrors();
+    errors.forEach(function (err) {
+      if (err.field === 'size') {
+        if (warningEl) {
+          warningEl.textContent = err.message;
+          warningEl.classList.add('is-visible');
+        }
+        if (lengthEl) lengthEl.setAttribute('aria-invalid', 'true');
+        if (widthEl) widthEl.setAttribute('aria-invalid', 'true');
+        return;
+      }
+      var errEl = document.getElementById(fieldErrorIds[err.field]);
+      if (errEl) {
+        errEl.textContent = err.message;
+        errEl.classList.add('is-visible');
+      }
+      var input = fieldElements[err.field];
+      if (input) input.setAttribute('aria-invalid', 'true');
+    });
+  }
+
+  function formatEuro(value) {
+    return value.toFixed(2).replace('.', ',') + ' €';
+  }
+
+  function showEmptyState() {
+    priceEl.textContent = '—';
+    if (hintEl) hintEl.hidden = false;
+    if (breakdownEl) breakdownEl.hidden = true;
+    if (unitEl) unitEl.textContent = '—';
+    if (hoursEl) hoursEl.textContent = '—';
+    if (passesEl) passesEl.textContent = '—';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.removeAttribute('data-summary');
+    }
+  }
+
+  var rafId = null;
+  function animatePrice(low, high) {
+    if (rafId) cancelAnimationFrame(rafId);
+    var duration = 500;
+    var start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      var progress = Math.min(1, (ts - start) / duration);
+      var eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      var curLow = Math.round(low * eased);
+      var curHigh = Math.round(high * eased);
+      priceEl.textContent = calc.formatPriceRange(curLow, curHigh);
+      if (progress < 1) {
+        rafId = requestAnimationFrame(step);
+      } else {
+        priceEl.textContent = calc.formatPriceRange(low, high);
+        rafId = null;
+      }
+    }
+    rafId = requestAnimationFrame(step);
+  }
+
+  function buildSummary(input, result) {
+    var mat = calc.MATERIALS[input.material].label;
+    var cx = calc.COMPLEXITY[input.complexity].label;
+    return 'Kalkulatora tāme: ' + mat + ', ' +
+      input.length + '×' + input.width + '×' + input.thickness + ' mm, ' +
+      cx + ', ' + input.quantity + ' gab. → ' +
+      calc.formatPriceRange(result.low, result.high);
+  }
+
+  function recalculate() {
+    var input = readInputs();
+    var errors = calc.validate(input);
+
+    if (errors.length) {
+      renderErrors(errors);
+      showEmptyState();
+      return;
+    }
+
+    renderErrors([]);
+    var result = calc.calculateEstimate(input);
+
+    if (hintEl) hintEl.hidden = true;
+    if (breakdownEl) breakdownEl.hidden = false;
+    if (unitEl) unitEl.textContent = formatEuro(result.unitPrice);
+    if (hoursEl) hoursEl.textContent = result.machineHours.toFixed(2) + ' h';
+    if (passesEl) passesEl.textContent = String(result.passes);
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.dataset.summary = buildSummary(input, result);
+    }
+
+    animatePrice(result.low, result.high);
+  }
+
+  // Notikumu klausītāji — pārrēķins pie katras ievades
+  [materialEl, thicknessEl, lengthEl, widthEl, quantityEl].forEach(function (el) {
+    if (!el) return;
+    el.addEventListener('input', recalculate);
+    el.addEventListener('change', recalculate);
+  });
+  form.querySelectorAll('input[name="complexity"]').forEach(function (radio) {
+    radio.addEventListener('change', recalculate);
+  });
+
+  // "Nosūtīt šo pieprasījumu" — pārnes tāmi uz kontaktformu
+  if (submitBtn) {
+    submitBtn.addEventListener('click', function () {
+      var summary = submitBtn.dataset.summary || '';
+      var messageField = document.getElementById('kontakti-zinojums');
+      if (messageField) {
+        messageField.value = summary;
+        var target = document.getElementById('kontakti');
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+        messageField.focus();
+      } else {
+        window.location.href = 'kontakti.html?zinojums=' + encodeURIComponent(summary);
+      }
+    });
+  }
+
+  recalculate();
+})();

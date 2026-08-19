@@ -1,6 +1,183 @@
 /* ==========================================================================
    CNC PAKALPOJUMI — kalkulatora stili
    --------------------------------------------------------------------------
-   Kalkulatora sekcijas un padziļinātās lapas stili tiks pievienoti,
-   kad tiks būvēts cenu kalkulators (nākamie soļi).
+   Cenu kalkulatora "aplikācijai līdzīgā" sekcija: kontrastējošs fons,
+   skaidras robežas, rezultāta panelis un validācijas stāvokļi.
    ========================================================================== */
+
+.calc-section {
+  background-color: var(--bg-muted);
+  border-block: 1px solid var(--border);
+}
+
+.calc {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.calc__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+}
+
+.calc__form {
+  padding: var(--space-6);
+}
+
+.calc__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+}
+
+.calc__fields .field--full {
+  grid-column: 1 / -1;
+}
+
+/* Sarežģītības izvēle — segmentēta radio grupa */
+.calc__radio-group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.calc__radio {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-small);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.calc__radio input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.calc__radio:hover { border-color: var(--border-strong); }
+
+.calc__radio:has(input:checked) {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+}
+
+/* Rezultāta panelis */
+.calc__result {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6);
+  background-color: var(--bg-soft);
+  border-left: 1px solid var(--border);
+}
+
+.calc__result-label {
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.calc__price {
+  margin-top: var(--space-3);
+  font-size: clamp(2.25rem, 1.8rem + 1.5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.calc__hint {
+  margin-top: var(--space-3);
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+}
+
+.calc__breakdown {
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.calc__breakdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+.calc__breakdown-item strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.calc__warning {
+  display: none;
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background-color: var(--danger-soft);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-small);
+  color: var(--danger);
+}
+.calc__warning.is-visible { display: block; }
+
+.calc__disclaimer {
+  margin-top: var(--space-5);
+  font-size: var(--fs-tiny);
+  color: var(--text-faint);
+}
+
+.calc__submit {
+  margin-top: auto;
+  padding-top: var(--space-5);
+}
+
+/* "Kā darbojas aprēķins" — kalkulators.html */
+.calc-notes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+  margin-top: var(--space-6);
+}
+
+.calc-note {
+  padding: var(--space-5);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.calc-note__title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.calc-note__desc {
+  margin-top: var(--space-2);
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+
+/* Responsīvs */
+@media (max-width: 56em) {
+  .calc__inner { grid-template-columns: 1fr; }
+  .calc__result { border-left: none; border-top: 1px solid var(--border); }
+  .calc-notes { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 40em) {
+  .calc__fields { grid-template-columns: 1fr; }
+  .calc-notes { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cenu kalkulators | CNC PAKALPOJUMI</title>
+  <meta name="description" content="Aprēķini CNC frēzēšanas orientējošo cenu tiešsaistē — izvēlies materiālu, ievadi izmērus un uzreiz redzēsi aptuveno cenu.">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="lv_LV">
+  <meta property="og:site_name" content="CNC PAKALPOJUMI">
+  <meta property="og:title" content="Cenu kalkulators | CNC PAKALPOJUMI">
+  <meta property="og:description" content="Aprēķini CNC frēzēšanas orientējošo cenu tiešsaistē — koks, plastmasa, alumīnijs.">
+  <meta property="og:url" content="https://cncpakalpojumi.github.io/kalkulators.html">
+
+  <link rel="canonical" href="https://cncpakalpojumi.github.io/kalkulators.html">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23B45309'/%3E%3Cpath d='M9 23 L23 9' stroke='%23FFFFFF' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/kalkulators.css">
+</head>
+<body>
+  <a class="skip-link" href="#saturs">Pāriet uz saturu</a>
+
+  <header class="site-header" id="site-header">
+    <div class="container site-header__inner">
+      <a class="logo" href="index.html" aria-label="CNC PAKALPOJUMI — sākumlapa">CNC<span class="logo__slash">/</span>PAKALPOJUMI</a>
+
+      <nav class="nav" id="galvena-navigacija" aria-label="Galvenā navigācija">
+        <ul class="nav__list">
+          <li class="nav__item"><a class="nav__link" href="index.html#pakalpojumi">Pakalpojumi</a></li>
+          <li class="nav__item"><a class="nav__link" href="kalkulators.html" aria-current="page">Kalkulators</a></li>
+          <li class="nav__item"><a class="nav__link" href="portfolio.html">Portfolio</a></li>
+          <li class="nav__item"><a class="nav__link" href="par-mums.html">Par mums</a></li>
+          <li class="nav__item"><a class="nav__link" href="kontakti.html">Kontakti</a></li>
+        </ul>
+      </nav>
+
+      <div class="site-header__actions">
+        <a class="site-header__phone" href="tel:+37120000000">+371 20 000 000</a>
+        <a class="btn btn--primary btn--sm" href="kontakti.html">Pieprasīt cenu</a>
+        <button class="nav-toggle" id="nav-toggle" type="button"
+                aria-expanded="false" aria-controls="galvena-navigacija"
+                aria-label="Atvērt izvēlni">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="saturs">
+    <!-- Lapas galvene -->
+    <section class="page-hero" aria-labelledby="lapa-virsraksts">
+      <div class="container page-hero__inner">
+        <span class="eyebrow">Tiešsaistes tāme</span>
+        <h1 class="page-hero__title" id="lapa-virsraksts">Cenu kalkulators</h1>
+        <p class="page-hero__lead">
+          Ievadi detaļas parametrus un uzreiz redzēsi orientējošo cenu.
+          Tāme ir indikatīva — precīzu cenu apstiprināsim pēc faila saņemšanas.
+        </p>
+      </div>
+    </section>
+
+    <!-- Kalkulators -->
+    <section class="section calc-section" aria-labelledby="kalkulators-virsraksts">
+      <div class="container">
+        <h2 class="visually-hidden" id="kalkulators-virsraksts">Kalkulatora forma</h2>
+
+        <div class="calc">
+          <div class="calc__inner">
+            <form class="calc__form" id="cenu-kalkulators" novalidate>
+              <div class="calc__fields">
+                <div class="field field--full">
+                  <label class="label" for="calc-material">Materiāls</label>
+                  <select class="select" id="calc-material" name="material">
+                    <option value="wood">Koks / MDF / Saplāksnis</option>
+                    <option value="plastic">Plastmasa / Akrils / Kompozīti</option>
+                    <option value="aluminum">Alumīnijs / Mīkstie metāli</option>
+                  </select>
+                  <span class="field__error" id="calc-material-error"></span>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="calc-length">Garums (mm)</label>
+                  <input class="input" type="number" id="calc-length" name="length"
+                         min="1" max="2500" step="1" inputmode="numeric" placeholder="piem., 600">
+                  <span class="field__error" id="calc-length-error"></span>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="calc-width">Platums (mm)</label>
+                  <input class="input" type="number" id="calc-width" name="width"
+                         min="1" max="1300" step="1" inputmode="numeric" placeholder="piem., 400">
+                  <span class="field__error" id="calc-width-error"></span>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="calc-thickness">Biezums (mm)</label>
+                  <input class="input" type="number" id="calc-thickness" name="thickness"
+                         min="0.5" max="100" step="0.5" inputmode="decimal" placeholder="piem., 18">
+                  <span class="field__error" id="calc-thickness-error"></span>
+                </div>
+
+                <div class="field">
+                  <label class="label" for="calc-quantity">Daudzums (gab.)</label>
+                  <input class="input" type="number" id="calc-quantity" name="quantity"
+                         min="1" max="10000" step="1" inputmode="numeric" value="1">
+                  <span class="field__error" id="calc-quantity-error"></span>
+                </div>
+
+                <div class="field field--full">
+                  <span class="label" id="calc-complexity-label">Apstrādes sarežģītība</span>
+                  <div class="calc__radio-group" role="radiogroup" aria-labelledby="calc-complexity-label">
+                    <label class="calc__radio">
+                      <input type="radio" name="complexity" value="simple" checked>
+                      <span>Vienkārša 2D kontūrgriešana</span>
+                    </label>
+                    <label class="calc__radio">
+                      <input type="radio" name="complexity" value="complex">
+                      <span>Sarežģīta forma, daudz detaļu</span>
+                    </label>
+                    <label class="calc__radio">
+                      <input type="radio" name="complexity" value="relief3d">
+                      <span>3D reljefs / gravējums</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <div class="calc__result" aria-live="polite">
+              <p class="calc__result-label">Aptuvenā cena</p>
+              <p class="calc__price" id="calc-price">—</p>
+              <p class="calc__hint" id="calc-hint">Ievadi detaļas izmērus, lai redzētu orientējošo cenu.</p>
+
+              <ul class="calc__breakdown" id="calc-breakdown" hidden>
+                <li class="calc__breakdown-item"><span>Vienas detaļas cena</span><strong id="calc-unit">—</strong></li>
+                <li class="calc__breakdown-item"><span>Aptuvenais mašīnlaiks</span><strong id="calc-hours">—</strong></li>
+                <li class="calc__breakdown-item"><span>Griešanas gājieni</span><strong id="calc-passes">—</strong></li>
+              </ul>
+
+              <div class="calc__warning" id="calc-warning" role="alert"></div>
+
+              <p class="calc__disclaimer">Šī ir orientējoša tāme. Precīzu cenu apstiprināsim pēc jūsu faila un tehnisko prasību izskatīšanas.</p>
+
+              <div class="calc__submit">
+                <button type="button" class="btn btn--secondary btn--block" id="calc-submit" disabled>Nosūtīt šo pieprasījumu</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kā darbojas aprēķins -->
+    <section class="section" aria-labelledby="ka-darbojas-virsraksts">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Caurspīdīgums</span>
+          <h2 id="ka-darbojas-virsraksts">Kā darbojas aprēķins</h2>
+        </div>
+
+        <div class="calc-notes">
+          <div class="calc-note">
+            <h3 class="calc-note__title">Bāzes likme €/h</h3>
+            <p class="calc-note__desc">Koks 25 €/h, plastmasa 30 €/h, alumīnijs 45 €/h — pēc materiāla apstrādes sarežģītības.</p>
+          </div>
+          <div class="calc-note">
+            <h3 class="calc-note__title">Mašīnlaiks</h3>
+            <p class="calc-note__desc">Aprēķināts no detaļas perimetra, biezuma un griešanas gājienu skaita.</p>
+          </div>
+          <div class="calc-note">
+            <h3 class="calc-note__title">Sarežģītība</h3>
+            <p class="calc-note__desc">Vienkārša 2D ×1,0 · sarežģīta forma ×1,5 · 3D reljefs ×2,2.</p>
+          </div>
+          <div class="calc-note">
+            <h3 class="calc-note__title">Materiāls + daudzums</h3>
+            <p class="calc-note__desc">Pieskaitītas aptuvenās materiāla izmaksas un reizināts ar detaļu skaitu.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section section--muted" aria-labelledby="tame-virsraksts">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Nākamais solis</span>
+          <h2 id="tame-virsraksts">Saņem precīzu tāmi</h2>
+          <p class="lead">
+            Atsūti savu failu (DXF, DWG, AI, PDF) un mēs 24 stundu laikā
+            sagatavosim precīzu tāmi ar izpildes laiku.
+          </p>
+        </div>
+        <a class="btn btn--primary btn--lg" href="kontakti.html">Sazināties</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__grid">
+        <div>
+          <a class="logo" href="index.html">CNC<span class="logo__slash">/</span>PAKALPOJUMI</a>
+          <p class="site-footer__desc">
+            CNC frēzēšanas pakalpojumi Latvijā — koks, plastmasa un alumīnijs
+            darba laukā 1300 × 2500&nbsp;mm.
+          </p>
+        </div>
+        <div>
+          <h2 class="site-footer__heading">Navigācija</h2>
+          <ul class="site-footer__nav">
+            <li><a class="site-footer__link" href="index.html#pakalpojumi">Pakalpojumi</a></li>
+            <li><a class="site-footer__link" href="kalkulators.html">Kalkulators</a></li>
+            <li><a class="site-footer__link" href="portfolio.html">Portfolio</a></li>
+            <li><a class="site-footer__link" href="par-mums.html">Par mums</a></li>
+            <li><a class="site-footer__link" href="kontakti.html">Kontakti</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="site-footer__heading">Kontakti</h2>
+          <ul class="site-footer__contacts">
+            <li class="site-footer__contact">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <a class="site-footer__link" href="tel:+37120000000">+371 20 000 000</a>
+            </li>
+            <li class="site-footer__contact">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <a class="site-footer__link" href="mailto:info@cncpakalpojumi.lv">info@cncpakalpojumi.lv</a>
+            </li>
+            <li class="site-footer__contact">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Latvija
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="site-footer__bottom">
+        <p>© 2026 CNC PAKALPOJUMI. Visas tiesības aizsargātas.</p>
+        <div class="site-footer__social">
+          <a href="#" aria-label="Facebook">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="#" aria-label="LinkedIn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4V9h4v1.5A6 6 0 0 1 16 8z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+  <script src="js/kalkulators.js" defer></script>
+</body>
+</html>
