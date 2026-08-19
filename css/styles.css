@@ -36,6 +36,15 @@
   --border-strong: #C9C2B7;
   --grid-line: #EFEAE2;       /* režģa motīva līnijas fonā */
 
+  /* — Stāvokļi (formu validācija, ziņojumi) — */
+  --danger: #B42318;
+  --danger-soft: #FDECEA;
+  --success: #067647;
+  --success-soft: #ECFDF3;
+
+  /* — Caurspīdīgs fons sticky header — */
+  --bg-translucent: rgba(251, 249, 246, 0.9);
+
   /* — Tipogrāfija — viena fontu ģimene visam — */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                "Helvetica Neue", Helvetica, Arial, sans-serif;

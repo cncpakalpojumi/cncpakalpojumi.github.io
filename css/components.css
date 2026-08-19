@@ -1,0 +1,692 @@
+/* ==========================================================================
+   CNC PAKALPOJUMI — komponenti un lapas sekcijas
+   --------------------------------------------------------------------------
+   Atkārtoti lietojamie komponenti (pogas, kartītes, formas, badži, akordeons,
+   procesa soļi, portfolio) un header/hero sekciju stili.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. POGAS
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.375rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  transition: background-color var(--transition-base),
+              border-color var(--transition-base),
+              color var(--transition-base);
+}
+
+.btn:hover { text-decoration: none; }
+
+.btn--primary {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+.btn--primary:hover {
+  background-color: var(--accent-hover);
+  color: var(--accent-contrast);
+}
+
+.btn--secondary {
+  background-color: transparent;
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.btn--secondary:hover {
+  border-color: var(--text);
+  color: var(--text);
+  background-color: var(--bg-muted);
+}
+
+.btn--ghost {
+  background-color: transparent;
+  color: var(--accent);
+  padding-inline: 0.5rem;
+}
+.btn--ghost:hover { color: var(--accent-hover); }
+
+.btn--lg { padding: 1rem 1.625rem; font-size: 1.0625rem; }
+.btn--sm { padding: 0.5rem 0.9375rem; font-size: var(--fs-small); }
+.btn--block { width: 100%; }
+
+/* Saite ar bultiņu ("Skatīt visus darbus →") */
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+.link-arrow:hover { color: var(--accent-hover); }
+.link-arrow svg { transition: transform var(--transition-base); }
+.link-arrow:hover svg { transform: translateX(3px); }
+
+/* --------------------------------------------------------------------------
+   2. BADŽS
+   -------------------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--bg-muted);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   3. HEADER / NAVIGĀCIJA
+   -------------------------------------------------------------------------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: var(--bg-translucent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow var(--transition-base);
+}
+
+.site-header--scrolled {
+  box-shadow: var(--shadow-sm);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  height: var(--header-height);
+}
+
+.logo {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  white-space: nowrap;
+}
+.logo:hover { color: var(--text); }
+.logo__slash { color: var(--accent); font-weight: 800; }
+
+.nav {
+  margin-inline: auto;
+}
+
+.nav__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.nav__link {
+  display: inline-block;
+  padding-block: 0.375rem;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+.nav__link:hover { color: var(--text); }
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.site-header__phone {
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.site-header__phone:hover { color: var(--accent-hover); }
+
+/* Hamburger poga — redzama tikai mobilajā */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.5rem;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: var(--text);
+  border-radius: 1px;
+  transition: transform var(--transition-base), opacity var(--transition-base);
+}
+
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* --------------------------------------------------------------------------
+   4. HERO
+   -------------------------------------------------------------------------- */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg);
+}
+
+.hero__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: var(--space-8);
+  align-items: center;
+  padding-block: var(--space-9) var(--space-8);
+}
+
+.hero__title {
+  margin-top: var(--space-5);
+  max-width: 18ch;
+}
+
+.hero__lead {
+  margin-top: var(--space-5);
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  max-width: 52ch;
+}
+
+.hero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.hero__fact {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.hero__fact strong {
+  display: block;
+  font-size: var(--fs-body);
+  color: var(--text);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+/* G-code dekorācija */
+.hero__visual {
+  position: relative;
+}
+
+.hero__gcode {
+  width: 100%;
+  height: auto;
+}
+
+.hero__gcode-path {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  stroke-linecap: round;
+  animation: gcode-dash 40s linear infinite;
+}
+
+.hero__gcode-origin {
+  fill: var(--accent);
+}
+
+.hero__gcode-label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  fill: var(--text-faint);
+}
+
+@keyframes gcode-dash {
+  to { stroke-dashoffset: -960; }
+}
+
+/* --------------------------------------------------------------------------
+   5. FAKTU JOSLA
+   -------------------------------------------------------------------------- */
+.facts {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-soft);
+}
+
+.facts__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.fact {
+  padding: var(--space-6) var(--space-5);
+  border-left: 1px solid var(--border);
+}
+.fact:first-child { border-left: none; }
+
+.fact__value {
+  display: block;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 1.875rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.fact__label {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   6. KARTĪTES
+   -------------------------------------------------------------------------- */
+.card {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+
+.card--muted {
+  background-color: var(--bg-muted);
+}
+
+/* Materiālu kartītes */
+.material-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+}
+
+.material-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.material-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.material-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-sm);
+  background-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.material-card__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.material-card__desc {
+  margin-top: var(--space-3);
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+
+.material-card__list {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.material-card__list li {
+  position: relative;
+  padding-left: 1.125rem;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  line-height: 1.9;
+}
+.material-card__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.8em;
+  width: 6px;
+  height: 2px;
+  background-color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   7. FORMAS
+   -------------------------------------------------------------------------- */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+}
+
+.form-grid .field--full {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg);
+  font-size: var(--fs-body);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.15);
+}
+
+.input[aria-invalid="true"],
+.select[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.12);
+}
+
+.textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.field__hint {
+  font-size: var(--fs-tiny);
+  color: var(--text-faint);
+}
+
+.field__error {
+  display: none;
+  font-size: var(--fs-tiny);
+  color: var(--danger);
+}
+.field__error.is-visible { display: block; }
+
+/* --------------------------------------------------------------------------
+   8. PROCESA SOĻI
+   -------------------------------------------------------------------------- */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  padding-top: var(--space-7);
+}
+
+.step::before {
+  counter-increment: step;
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.step::after {
+  content: "";
+  position: absolute;
+  top: 0.45rem;
+  left: 2.5rem;
+  right: 0;
+  height: 1px;
+  background-color: var(--border);
+}
+.step:last-child::after { display: none; }
+
+.step__title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.step__desc {
+  margin-top: var(--space-2);
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   9. PORTFOLIO REŽĢIS
+   -------------------------------------------------------------------------- */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+}
+
+.portfolio-card {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+.portfolio-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.portfolio-card__media {
+  aspect-ratio: 4 / 3;
+  background-color: var(--bg-muted);
+  /* TODO: aizvietot ar reālu foto no ražošanas */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: var(--fs-small);
+}
+
+.portfolio-card__body {
+  padding: var(--space-4) var(--space-5);
+}
+
+.portfolio-card__title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.portfolio-card__meta {
+  margin-top: var(--space-1);
+  font-size: var(--fs-tiny);
+  color: var(--text-faint);
+}
+
+/* --------------------------------------------------------------------------
+   10. AKORDEONS (FAQ)
+   -------------------------------------------------------------------------- */
+.accordion {
+  border-top: 1px solid var(--border);
+}
+
+.accordion__item {
+  border-bottom: 1px solid var(--border);
+}
+
+.accordion__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-5) 0;
+  text-align: left;
+  color: var(--text);
+}
+
+.accordion__title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.accordion__icon {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--text-muted);
+  transition: transform var(--transition-base);
+}
+
+.accordion__item.is-open .accordion__icon {
+  transform: rotate(45deg);
+}
+
+.accordion__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-base);
+}
+
+.accordion__item.is-open .accordion__panel {
+  grid-template-rows: 1fr;
+}
+
+.accordion__panel-inner {
+  overflow: hidden;
+}
+
+.accordion__content {
+  padding-bottom: var(--space-5);
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   11. MOBILĀ NAVIGĀCIJA
+   -------------------------------------------------------------------------- */
+@media (max-width: 62em) {
+  .nav {
+    position: absolute;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    display: none;
+    margin-inline: 0;
+    padding: var(--space-3) var(--space-5) var(--space-5);
+    background-color: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .nav.is-open { display: block; }
+
+  .nav__list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .nav__link {
+    display: block;
+    padding: 0.875rem 0;
+    font-size: 1.0625rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav__item:last-child .nav__link { border-bottom: none; }
+
+  .site-header__phone { display: none; }
+  .nav-toggle { display: flex; }
+}
+
+/* --------------------------------------------------------------------------
+   12. RESPONSĪVIE KOMPONENTI
+   -------------------------------------------------------------------------- */
+@media (max-width: 56em) {
+  .hero__inner {
+    grid-template-columns: 1fr;
+    gap: var(--space-7);
+  }
+
+  .hero__visual {
+    order: -1;
+    max-width: 30rem;
+  }
+
+  .facts__grid { grid-template-columns: 1fr 1fr; }
+  .fact:nth-child(odd) { border-left: none; }
+  .fact:nth-child(n+3) { border-top: 1px solid var(--border); }
+
+  .material-grid { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .portfolio-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 40em) {
+  .facts__grid { grid-template-columns: 1fr; }
+  .fact,
+  .fact:first-child { border-left: none; border-top: 1px solid var(--border); }
+  .fact:first-child { border-top: none; }
+
+  .steps { grid-template-columns: 1fr; }
+  .step::after { display: none; }
+
+  .portfolio-grid { grid-template-columns: 1fr; }
+
+  .hero__actions .btn { flex: 1 1 100%; }
+}
