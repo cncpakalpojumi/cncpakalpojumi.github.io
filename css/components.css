@@ -487,6 +487,33 @@
   border: 0;
 }
 
+/* Homepage kontaktu CTA */
+.contact-cta {
+  padding: var(--space-7);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.contact-cta__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.contact-cta__note {
+  margin-top: var(--space-5);
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+.contact-cta__note a {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.contact-cta__note a:hover { color: var(--accent-hover); }
+
 @media (max-width: 56em) {
   .contact-grid { grid-template-columns: 1fr; }
   .section-head--split { flex-direction: column; align-items: flex-start; }

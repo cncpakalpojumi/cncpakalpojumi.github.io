@@ -402,7 +402,7 @@
         if (target) target.scrollIntoView({ behavior: 'smooth' });
         messageField.focus();
       } else {
-        window.location.href = 'kontakti.html?zinojums=' + encodeURIComponent(summary);
+        window.location.href = '/kontakti/?zinojums=' + encodeURIComponent(summary);
       }
     });
   }
