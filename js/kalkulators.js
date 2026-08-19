@@ -308,6 +308,10 @@
   }
 
   function showEmptyState() {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
     priceEl.textContent = '—';
     if (hintEl) hintEl.hidden = false;
     if (breakdownEl) breakdownEl.hidden = true;
