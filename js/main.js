@@ -1,15 +1,19 @@
 /* ==========================================================================
    CNC PAKALPOJUMI — galvenais skripts
    --------------------------------------------------------------------------
-   Atbild par:
-     1. Sticky header stāvokli pie scroll
-     2. Mobilo izvēlni (hamburger)
-   Pārējā funkcionalitāte (FAQ akordeons, scroll animācijas u.c.) tiks
-   pievienota turpmākajos soļos.
+   1. Sticky header stāvoklis pie scroll
+   2. Mobilā izvēlne (hamburger)
+   3. FAQ akordeons
+   4. Kontaktformas validācija
+   5. Scroll reveal (IntersectionObserver)
+   6. Gads footerī
    ========================================================================== */
 
 (function () {
   'use strict';
+
+  // Ļauj CSS zināt, ka JavaScript ir pieejams (scroll reveal)
+  document.documentElement.classList.add('js');
 
   var header = document.getElementById('site-header');
   var navToggle = document.getElementById('nav-toggle');
@@ -45,4 +49,103 @@
       });
     });
   }
+
+  // 3. FAQ akordeons — viens atvērts vienlaikus
+  document.querySelectorAll('.accordion__item').forEach(function (item) {
+    var headerBtn = item.querySelector('.accordion__header');
+    if (!headerBtn) return;
+
+    headerBtn.addEventListener('click', function () {
+      var isOpen = item.classList.contains('is-open');
+
+      document.querySelectorAll('.accordion__item.is-open').forEach(function (openItem) {
+        if (openItem !== item) {
+          openItem.classList.remove('is-open');
+          var btn = openItem.querySelector('.accordion__header');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      item.classList.toggle('is-open', !isOpen);
+      headerBtn.setAttribute('aria-expanded', String(!isOpen));
+    });
+  });
+
+  // 4. Kontaktformas validācija
+  var contactForm = document.getElementById('kontaktu-forma');
+  if (contactForm) {
+    var nameEl = document.getElementById('kontakti-vards');
+    var emailEl = document.getElementById('kontakti-epasts');
+    var msgEl = document.getElementById('kontakti-zinojums');
+
+    function setContactError(input, message) {
+      var errorEl = document.getElementById(input.id + '-error');
+      if (errorEl) {
+        errorEl.textContent = message || '';
+        errorEl.classList.toggle('is-visible', !!message);
+      }
+      input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+
+    contactForm.addEventListener('submit', function (e) {
+      var valid = true;
+
+      if (!nameEl.value.trim()) {
+        setContactError(nameEl, 'Lūdzu, norādiet savu vārdu.');
+        valid = false;
+      } else {
+        setContactError(nameEl, '');
+      }
+
+      var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim());
+      if (!emailEl.value.trim() || !emailOk) {
+        setContactError(emailEl, 'Lūdzu, norādiet derīgu e-pasta adresi.');
+        valid = false;
+      } else {
+        setContactError(emailEl, '');
+      }
+
+      if (!msgEl.value.trim()) {
+        setContactError(msgEl, 'Lūdzu, ierakstiet ziņojumu.');
+        valid = false;
+      } else {
+        setContactError(msgEl, '');
+      }
+
+      // Ja dati nav derīgi — apturam formu; pretējā gadījumā ļaujam mailto: darbībai
+      if (!valid) {
+        e.preventDefault();
+      }
+    });
+
+    // Reāllaika kļūdu notīrīšana
+    [nameEl, emailEl, msgEl].forEach(function (el) {
+      el.addEventListener('input', function () {
+        setContactError(el, '');
+      });
+    });
+  }
+
+  // 5. Scroll reveal
+  var revealEls = document.querySelectorAll('[data-reveal]');
+  if (revealEls.length) {
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+      revealEls.forEach(function (el) { observer.observe(el); });
+    } else {
+      revealEls.forEach(function (el) { el.classList.add('is-visible'); });
+    }
+  }
+
+  // 6. Gads footerī
+  var yearEl = document.getElementById('gads');
+  if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 })();

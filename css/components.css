@@ -430,6 +430,69 @@
   color: var(--text-faint);
 }
 
+/* Sekcijas galvene ar darbību labajā pusē ("Skatīt visus darbus →") */
+.section-head--split {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  max-width: none;
+  margin-bottom: var(--space-7);
+}
+
+/* Kontaktu sekcija */
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.contact-info {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.contact-info__title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.contact-info__list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.contact-info__item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+.contact-info__item svg { flex-shrink: 0; color: var(--accent); }
+
+.contact-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-faint);
+  font-size: var(--fs-small);
+  text-align: center;
+  padding: var(--space-4);
+}
+
+@media (max-width: 56em) {
+  .contact-grid { grid-template-columns: 1fr; }
+  .section-head--split { flex-direction: column; align-items: flex-start; }
+}
+
 /* --------------------------------------------------------------------------
    7. FORMAS
    -------------------------------------------------------------------------- */
