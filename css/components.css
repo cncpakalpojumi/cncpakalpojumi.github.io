@@ -268,7 +268,12 @@
 }
 
 .hero__gcode-text {
-  fill: var(--text-faint);
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  stroke-dasharray: 3 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   font-family: var(--font-sans);
   font-weight: 800;
   font-size: 64px;
