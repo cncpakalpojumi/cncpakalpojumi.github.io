@@ -100,17 +100,14 @@
               <line x1="30" y1="295" x2="610" y2="295"/>
             </g>
 
-            <!-- Frēzēšanas ceļš (G-code) -->
-            <path id="frez-path" class="hero__gcode-path"
-                  d="M60 210 C 140 140, 230 280, 320 210 C 410 140, 500 280, 560 210"/>
+            <!-- Neredzamais ceļš, pa kuru ceļo frēzes asmens -->
+            <path id="frez-path" d="M110 220 H530" fill="none" stroke="none"/>
 
-            <!-- Vārds FRĒZĒT gar ceļu -->
-            <text class="hero__gcode-text">
-              <textPath href="#frez-path" startOffset="50%" text-anchor="middle">FRĒZĒT</textPath>
-            </text>
+            <!-- Vārds FRĒZĒT (taisns, ar raustītām kontūrlīnijām) -->
+            <text class="hero__gcode-text" x="320" y="220" text-anchor="middle" dominant-baseline="central">FRĒZĒT</text>
 
             <!-- Kustīgais punkts (frēzes asmens) -->
-            <circle class="hero__gcode-dot" id="frez-dot" cx="60" cy="210" r="8"/>
+            <circle class="hero__gcode-dot" id="frez-dot" cx="110" cy="220" r="8"/>
 
             <!-- Izmēru anotācijas -->
             <text class="hero__gcode-label" x="320" y="410" text-anchor="middle">2500 mm</text>
