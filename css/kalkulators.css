@@ -1,1 +1,180 @@
-/* Kalkulatora stili tagad dzīvo components.css — šis fails ir apzināti tukšs. */
+/* ==========================================================================
+   CNC PAKALPOJUMI — kalkulatora papildu stili (failu režīms, ticamība, forma)
+   ========================================================================== */
+
+/* Nodrošina, ka HTML `hidden` atribūts vienmēr slēpj elementu,
+   pat ja citai klasei ir iestatīts `display`. */
+[hidden] { display: none !important; }
+
+/* Režīmu slēdzis */
+.calc__tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--line);
+}
+.calc__tab {
+  padding: 0.7rem 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 3px solid transparent;
+  transition: color var(--transition), border-color var(--transition);
+}
+.calc__tab:hover { color: var(--text); }
+.calc__tab.is-active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* Paneļi */
+.calc__panel[hidden] { display: none; }
+
+/* Drop zone */
+.calc__file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.calc__dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: var(--space-6);
+  border: 2px dashed var(--line);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.calc__dropzone:hover,
+.calc__dropzone.is-dragover {
+  border-color: var(--accent);
+  background: rgba(182, 74, 27, 0.06);
+}
+.calc__dropzone-icon { width: 2.5rem; height: 2.5rem; color: var(--accent); }
+.calc__dropzone-title { font-weight: 600; color: var(--text); }
+.calc__dropzone-sub { font-size: 0.85rem; color: var(--muted); }
+
+/* Faila karte */
+.calc__filecard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--accent);
+  background: rgba(182, 74, 27, 0.06);
+}
+.calc__filecard-info { display: grid; gap: 0.25rem; min-width: 0; }
+.calc__filecard-name { font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+.calc__filecard-meta { font-size: 0.85rem; color: var(--muted); }
+.calc__filecard-geo { font-size: 0.85rem; color: var(--text); }
+.calc__filecard-remove {
+  flex-shrink: 0;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  transition: background var(--transition), border-color var(--transition);
+}
+.calc__filecard-remove:hover { border-color: var(--accent); }
+
+/* Checkbox */
+.calc__check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: var(--text);
+}
+.calc__check input { accent-color: var(--accent); width: 1rem; height: 1rem; flex-shrink: 0; }
+
+/* Slīdnis */
+.calc__range-row { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+.calc__range-value { font-family: var(--font-sans); font-weight: 600; color: var(--accent); }
+.calc__range-row .field__hint { flex: 1; }
+.calc__range-row .field__hint:last-child { text-align: right; }
+
+/* Ticamība */
+.calc__confidence {
+  display: grid;
+  gap: 0.35rem;
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--line-light);
+}
+.calc__confidence-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(203, 205, 204, 0.6);
+}
+.calc__confidence-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: #cbcdcc;
+}
+.calc__confidence-value::before {
+  content: "";
+  width: 0.65rem;
+  height: 0.65rem;
+  background: #8e8e8e;
+}
+.calc__confidence-value[data-level="augsta"]::before { background: #acbec0; }
+.calc__confidence-value[data-level="videja"]::before { background: var(--accent); }
+.calc__confidence-value[data-level="zema"]::before { background: #8e8e8e; }
+.calc__confidence-note { font-size: 0.85rem; color: rgba(203, 205, 204, 0.65); }
+
+/* Kontaktforma tumšajā panelī */
+.calc__contact {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line-light);
+}
+.calc__contact-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: #cbcdcc;
+  margin-bottom: var(--space-4);
+}
+.calc__contact .label { color: #cbcdcc; }
+.calc__contact .input,
+.calc__contact .textarea {
+  background: rgba(24, 33, 32, 0.55);
+  border-color: var(--line-light);
+  color: #cbcdcc;
+}
+.calc__contact .input:focus,
+.calc__contact .textarea:focus { border-color: var(--accent); }
+.calc__contact .field__hint { color: rgba(203, 205, 204, 0.6); }
+.calc__contact .field__error { color: #acbec0; }
+.calc__contact-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+.calc__contact-status { font-size: 0.9rem; color: rgba(203, 205, 204, 0.75); }
+.calc__contact-note { margin-top: var(--space-3); font-size: 0.85rem; color: #acbec0; }
+
+/* Responsīvs */
+@media (max-width: 40em) {
+  .calc__tabs { flex-direction: column; border-bottom: 0; }
+  .calc__tab { border-bottom: 0; border-left: 3px solid transparent; text-align: left; }
+  .calc__tab.is-active { border-left-color: var(--accent); }
+  .calc__filecard { flex-direction: column; align-items: flex-start; }
+}
+
