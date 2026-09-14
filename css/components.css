@@ -74,7 +74,7 @@
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
-  background: var(--ink) url("https://images.pexels.com/photos/7480234/pexels-photo-7480234.jpeg") center/cover no-repeat;
+  background: var(--ink) url("/images/CNC_working.jpg") center/cover no-repeat;
   color: #F4EEE3;
 }
 .hero::before {
