@@ -82,6 +82,8 @@
       return Math.round(cm3) + ' cm³';
     }
 
+    function unitFactor() { return parseFloat(unitsEl.value) || 1; }
+
     function qtyDiscount(qty) {
       var d = 1;
       for (var i = 0; i < CONFIG.qtyDiscount.length; i++) {
@@ -502,6 +504,8 @@
     var materialEl = document.getElementById('calc-material');
     var quantityEl = document.getElementById('calc-quantity');
     var ownMaterialEl = document.getElementById('calc-own-material');
+    var unitsField = document.getElementById('calc-units-field');
+    var unitsEl = document.getElementById('calc-units');
     var removalField = document.getElementById('calc-removal-field');
     var removalEl = document.getElementById('calc-removal');
     var removalValue = document.getElementById('calc-removal-value');
@@ -559,6 +563,8 @@
       }
       var showRemoval = state.mode === 'file' && state.file && state.file.kind === 'step';
       removalField.hidden = !showRemoval;
+      var showUnits = state.mode === 'file' && state.file && (state.file.kind === 'stl' || state.file.kind === 'step');
+      unitsField.hidden = !showUnits;
     }
 
     function clearWarning() {
@@ -670,10 +676,12 @@
         if (parsed.hasBlocks) extraWarnings.push('Failā ir bloki (INSERT), kas netiek izvērsti — kontūru garums var būt novērtēts par mazu.');
         if (parsed.skipped > 0) extraWarnings.push('Izlaidām ' + parsed.skipped + ' objektus (teksts, izmēri, šrafūras), kas netiek griezti.');
       } else if (parsed.kind === 'stl') {
-        geom = { kind: 'stl', bbox: parsed.bbox, volumeMm3: parsed.volumeMm3, upAreaMm2: parsed.upAreaMm2 };
+        var sf = unitFactor();
+        geom = { kind: 'stl', bbox: { x: parsed.bbox.x * sf, y: parsed.bbox.y * sf, z: parsed.bbox.z * sf }, volumeMm3: parsed.volumeMm3 * sf * sf * sf, upAreaMm2: parsed.upAreaMm2 * sf * sf };
         if (parsed.triangles > 2000000) extraWarnings.push('Modelim ir vairāk nekā 2 miljoni trijstūru — aprēķins var aizņemt dažas sekundes.');
       } else {
-        geom = { kind: 'step', bbox: parsed.bbox };
+        var sf2 = unitFactor();
+        geom = { kind: 'step', bbox: { x: parsed.bbox.x * sf2, y: parsed.bbox.y * sf2, z: parsed.bbox.z * sf2 } };
         extraWarnings.push('No STEP faila nolasām tikai gabarītus, tāpēc tāme ir aptuvena.');
       }
 
@@ -778,6 +786,7 @@
       parseFile(file, kind).then(function (parsed) {
         state.file = { name: file.name, size: file.size, kind: kind, parsed: parsed };
         state.fileError = null;
+        unitsEl.value = '1';
         renderFileCard(file, parsed);
         updateThicknessVisibility();
         recalculate();
@@ -815,12 +824,13 @@
       fileNameEl.textContent = file.name;
       var typeLabel = parsed.kind === 'dxf' ? 'DXF' : (parsed.kind === 'stl' ? 'STL' : 'STEP');
       fileMetaEl.textContent = fmtSize(file.size) + ' · ' + typeLabel;
+      var f = unitFactor();
       if (parsed.kind === 'dxf') {
         fileGeoEl.textContent = 'Gabarīti ' + fmtDim(parsed.bbox.x) + ' × ' + fmtDim(parsed.bbox.y) + ' · ' + fmtLength(parsed.lengthMm) + ' griezuma · ' + parsed.contourCount + ' kontūras';
       } else if (parsed.kind === 'stl') {
-        fileGeoEl.textContent = 'Gabarīti ' + fmtDim(parsed.bbox.x) + ' × ' + fmtDim(parsed.bbox.y) + ' × ' + fmtDim(parsed.bbox.z) + ' · tilpums ' + fmtVolume(parsed.volumeMm3);
+        fileGeoEl.textContent = 'Gabarīti ' + fmtDim(parsed.bbox.x * f) + ' × ' + fmtDim(parsed.bbox.y * f) + ' × ' + fmtDim(parsed.bbox.z * f) + ' · tilpums ' + fmtVolume(parsed.volumeMm3 * f * f * f);
       } else {
-        fileGeoEl.textContent = 'Gabarīti ' + fmtDim(parsed.bbox.x) + ' × ' + fmtDim(parsed.bbox.y) + ' × ' + fmtDim(parsed.bbox.z);
+        fileGeoEl.textContent = 'Gabarīti ' + fmtDim(parsed.bbox.x * f) + ' × ' + fmtDim(parsed.bbox.y * f) + ' × ' + fmtDim(parsed.bbox.z * f);
       }
     }
 
@@ -852,6 +862,10 @@
       el.addEventListener('change', recalculate);
     });
     ownMaterialEl.addEventListener('change', recalculate);
+    unitsEl.addEventListener('change', function () {
+      if (state.file) renderFileCard(state.file, state.file.parsed);
+      recalculate();
+    });
     removalEl.addEventListener('input', function () {
       removalValue.textContent = removalEl.value + ' %';
       recalculate();

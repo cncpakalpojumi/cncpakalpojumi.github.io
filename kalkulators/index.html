@@ -112,6 +112,17 @@
                     </label>
                   </div>
 
+                  <div class="field" id="calc-units-field" hidden>
+                    <label class="label" for="calc-units">Faila vienības</label>
+                    <select class="select" id="calc-units">
+                      <option value="1">Milimetri (mm)</option>
+                      <option value="10">Centimetri (cm)</option>
+                      <option value="1000">Metri (m)</option>
+                      <option value="25.4">Collas (in)</option>
+                    </select>
+                    <span class="field__hint">STL un STEP faili nesatur vienību informāciju — ja izmēri šķiet pārāk mazi, izvēlieties pareizo vienību.</span>
+                  </div>
+
                   <div class="field field--full" id="calc-removal-field" hidden>
                     <label class="label" for="calc-removal">Aptuvenais materiāla noņemšanas apjoms</label>
                     <input type="range" id="calc-removal" min="20" max="80" step="1" value="45">
