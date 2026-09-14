@@ -92,6 +92,7 @@
   min-height: 84vh;
   padding-block: var(--space-7) var(--space-8);
 }
+.hero__wave { position: relative; z-index: 1; }
 .hero__content { max-width: 34rem; }
 .hero__title { color: #F4EEE3; font-size: clamp(2.5rem, 1.5rem + 4.5vw, 4.75rem); }
 .hero__lead { margin-top: var(--space-5); color: rgba(244, 238, 227, 0.72); font-size: 1.1rem; }
