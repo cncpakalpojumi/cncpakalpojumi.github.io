@@ -514,6 +514,70 @@
 }
 .contact-cta__note a:hover { color: var(--accent-hover); }
 
+/* --------------------------------------------------------------------------
+   PARALLAX ŠOVKEISS
+   -------------------------------------------------------------------------- */
+.showcase {
+  background-color: var(--bg-soft);
+  border-block: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.showcase__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.showcase__col {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.showcase__col--push {
+  padding-top: var(--space-8);
+}
+
+.showcase__card {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.showcase__card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.showcase__card--tall {
+  aspect-ratio: 3 / 4;
+}
+
+.showcase__card--wide {
+  aspect-ratio: 4 / 3;
+}
+
+.showcase__title {
+  display: grid;
+  gap: var(--space-4);
+  align-content: center;
+  padding-block: var(--space-4);
+}
+
+.showcase__title h2 {
+  max-width: 18ch;
+}
+
+@media (max-width: 56em) {
+  .showcase__grid { grid-template-columns: 1fr; }
+  .showcase__col--push { padding-top: 0; }
+}
+
 @media (max-width: 56em) {
   .contact-grid { grid-template-columns: 1fr; }
   .section-head--split { flex-direction: column; align-items: flex-start; }

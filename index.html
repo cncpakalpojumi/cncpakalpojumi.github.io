@@ -140,6 +140,32 @@
     </section>
 
     <!-- ====================================================================
+         2. PARALLAX ŠOVKEISS
+         ==================================================================== -->
+    <section class="section showcase" id="showcase" aria-labelledby="showcase-virsraksts">
+      <div class="container">
+        <div class="showcase__grid" data-parallax-layers>
+          <div class="showcase__col">
+            <div class="showcase__title" data-parallax-layer="1">
+              <span class="eyebrow">Mūsu darbs</span>
+              <h2 id="showcase-virsraksts">No idejas līdz gatavai detaļai</h2>
+              <p class="text-muted">Koks, plastmasa un alumīnijs — viena iekārta, precīzs rezultāts katrā slānī.</p>
+              <div><a class="btn btn--primary" href="/portfolio/">Skatīt darbus</a></div>
+            </div>
+            <figure class="showcase__card showcase__card--wide" data-parallax-layer="2">
+              <img src="/images/koka-gravets-delis.jpg" alt="Ar CNC frēzi veidots koka gravēts panelis" loading="lazy">
+            </figure>
+          </div>
+          <div class="showcase__col showcase__col--push">
+            <figure class="showcase__card showcase__card--tall" data-parallax-layer="3">
+              <img src="/images/m3-1325-iekarta.jpg" alt="Wattsan M3-1325 CNC frēze" loading="lazy">
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
          3. FAKTU JOSLA
          ==================================================================== -->
     <section class="facts" aria-label="Galvenie skaitļi">
@@ -590,7 +616,11 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js" defer></script>
   <script src="/js/main.js" defer></script>
   <script src="/js/kalkulators.js" defer></script>
+  <script src="/js/parallax.js" defer></script>
 </body>
 </html>
