@@ -10,9 +10,10 @@
   --ink: #181B22;
   --ink-soft: #222630;
   --text: #23201A;
-  --muted: #6E6655;
+  --muted: #675E49;
   --accent: #D9A44A;
   --accent-deep: #B98532;
+  --accent-onlight: #8A5A1E;
   --accent-ink: #201806;
   --line: rgba(35, 32, 26, 0.14);
   --line-light: rgba(244, 238, 227, 0.16);
@@ -77,22 +78,9 @@ h2 { font-size: var(--fs-h2); }
 h3 { font-size: var(--fs-h3); }
 p { max-width: 62ch; }
 
-.gold { color: var(--accent); font-style: italic; }
+.gold { color: var(--accent-onlight); font-style: italic; }
+.hero .gold, .section--dark .gold, .contact-cta .gold { color: var(--accent); }
 .text-muted { color: var(--muted); }
-
-/* Eyebrow */
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: var(--font-sans);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent-deep);
-}
-.eyebrow::before { content: ""; width: 2rem; height: 1px; background: var(--accent); }
 
 /* — Layout — */
 .container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--space-5); }
