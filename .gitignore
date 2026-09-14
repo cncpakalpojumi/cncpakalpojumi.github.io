@@ -1,3 +1,11 @@
 # Neapstrādāti foto avoti (lielie oriģināli) — mājaslapā izmanto
 # optimizētās versijas no mapes images/
 photos/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
