@@ -119,7 +119,7 @@
         if (pairs[s].code === 2 && pairs[s].value.trim().toUpperCase() === 'ENTITIES') { start = s; break; }
       }
       if (start === -1) {
-        return { kind: 'dxf', lengthMm: 0, bbox: { x: 0, y: 0 }, contourCount: 0, skipped: 0, hasBlocks: false, unitFactor: unitFactor };
+        return { kind: 'dxf', lengthMm: 0, bbox: { x: 0, y: 0 }, contourCount: 0, skipped: 0, hasBlocks: false, unitFactor: unitFactor, paths: [] };
       }
 
       var entities = [];
@@ -177,6 +177,96 @@
         return len * factor;
       }
 
+      var paths = [];
+      function addPath(pts, closed) {
+        if (!pts || pts.length < 1) return;
+        var d = 'M' + (pts[0][0] * unitFactor).toFixed(2) + ' ' + (-pts[0][1] * unitFactor).toFixed(2);
+        for (var q = 1; q < pts.length; q++) {
+          d += 'L' + (pts[q][0] * unitFactor).toFixed(2) + ' ' + (-pts[q][1] * unitFactor).toFixed(2);
+        }
+        if (closed && pts.length > 2) d += 'Z';
+        paths.push(d);
+      }
+      function sampleCircle(cx, cy, r) {
+        var pts = [];
+        var steps = Math.max(24, Math.ceil(Math.abs(r) / 20));
+        for (var k = 0; k <= steps; k++) {
+          var a = 2 * Math.PI * k / steps;
+          pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+        }
+        return pts;
+      }
+      function sampleArc(cx, cy, r, a1deg, a2deg) {
+        var delta = (a2deg - a1deg) % 360;
+        if (delta < 0) delta += 360;
+        if (delta === 0) delta = 360;
+        var steps = Math.max(8, Math.ceil(delta / 15));
+        var pts = [];
+        for (var k = 0; k <= steps; k++) {
+          var a = (a1deg + delta * k / steps) * Math.PI / 180;
+          pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+        }
+        return pts;
+      }
+      function sampleEllipse(cx, cy, majX, majY, ratio, t1, t2) {
+        var a = Math.hypot(majX, majY) || 1;
+        var b = a * ratio;
+        var ux = majX / a, uy = majY / a;
+        var vx = -uy, vy = ux;
+        if (t2 < t1) t2 += 2 * Math.PI;
+        var span = t2 - t1;
+        var steps = Math.max(16, Math.ceil(span / (10 * Math.PI / 180)));
+        var pts = [];
+        for (var k = 0; k <= steps; k++) {
+          var t = t1 + span * k / steps;
+          var ct = Math.cos(t), st = Math.sin(t);
+          pts.push([cx + a * ct * ux + b * st * vx, cy + a * ct * uy + b * st * vy]);
+        }
+        return pts;
+      }
+      function bulgeArc(p1, p2, b) {
+        if (!b) return [p1, p2];
+        var dx = p2[0] - p1[0], dy = p2[1] - p1[1];
+        var c = Math.hypot(dx, dy);
+        if (c === 0) return [p1, p2];
+        var theta = 4 * Math.atan(Math.abs(b));
+        var R = c / (2 * Math.sin(theta / 2));
+        var d = R * Math.cos(theta / 2);
+        var ux = dy / c, uy = -dx / c;
+        var sign = b > 0 ? 1 : -1;
+        var cx = (p1[0] + p2[0]) / 2 - ux * d * sign;
+        var cy = (p1[1] + p2[1]) / 2 - uy * d * sign;
+        var a1 = Math.atan2(p1[1] - cy, p1[0] - cx);
+        var a2 = Math.atan2(p2[1] - cy, p2[0] - cx);
+        var delta;
+        if (b > 0) { delta = a2 - a1; if (delta < 0) delta += 2 * Math.PI; }
+        else { delta = a1 - a2; if (delta < 0) delta += 2 * Math.PI; }
+        var steps = Math.max(4, Math.ceil(delta / (12 * Math.PI / 180)));
+        var pts = [];
+        for (var k = 0; k <= steps; k++) {
+          var ang = b > 0 ? a1 + delta * k / steps : a1 - delta * k / steps;
+          pts.push([cx + R * Math.cos(ang), cy + R * Math.sin(ang)]);
+        }
+        return pts;
+      }
+      function pushBulgePoly(pts, bulges, closed) {
+        var sampled = [];
+        var segCount = pts.length - 1 + (closed && pts.length > 2 ? 1 : 0);
+        for (var q = 0; q < segCount; q++) {
+          var p1 = pts[q % pts.length];
+          var p2 = pts[(q + 1) % pts.length];
+          var bl = q < bulges.length ? num(bulges[q]) : 0;
+          var arc = bulgeArc(p1, p2, bl);
+          for (var k = 0; k < arc.length; k++) {
+            var last = sampled[sampled.length - 1];
+            if (!last || Math.abs(last[0] - arc[k][0]) > 0.01 || Math.abs(last[1] - arc[k][1]) > 0.01) {
+              sampled.push(arc[k]);
+            }
+          }
+        }
+        addPath(sampled, closed);
+      }
+
       for (var e = 0; e < entities.length; e++) {
         var ent = entities[e];
         switch (ent.type) {
@@ -187,6 +277,7 @@
             contourCount++;
             bbox(x1 * unitFactor, y1 * unitFactor);
             bbox(x2 * unitFactor, y2 * unitFactor);
+            addPath([[x1, y1], [x2, y2]], false);
             break;
           }
           case 'CIRCLE': {
@@ -196,6 +287,7 @@
             contourCount++;
             bbox((ccx - cr) * unitFactor, (ccy - cr) * unitFactor);
             bbox((ccx + cr) * unitFactor, (ccy + cr) * unitFactor);
+            addPath(sampleCircle(ccx, ccy, cr), true);
             break;
           }
           case 'ARC': {
@@ -209,6 +301,7 @@
             var acx = num(ent.codes[10][0]), acy = num(ent.codes[20][0]);
             bbox((acx - ar) * unitFactor, (acy - ar) * unitFactor);
             bbox((acx + ar) * unitFactor, (acy + ar) * unitFactor);
+            addPath(sampleArc(acx, acy, ar, a1, a2), false);
             break;
           }
           case 'LWPOLYLINE': {
@@ -220,6 +313,7 @@
             lengthMm += lwLen(pts, ent.codes[42] || [], lwClosed, unitFactor);
             contourCount++;
             for (var pb = 0; pb < pts.length; pb++) bbox(pts[pb][0] * unitFactor, pts[pb][1] * unitFactor);
+            pushBulgePoly(pts, ent.codes[42] || [], lwClosed);
             break;
           }
           case 'POLYLINE': {
@@ -233,6 +327,7 @@
             lengthMm += polyLen(ppts, pClosed, unitFactor);
             contourCount++;
             for (var qb = 0; qb < ppts.length; qb++) bbox(ppts[qb][0] * unitFactor, ppts[qb][1] * unitFactor);
+            addPath(ppts, pClosed);
             e = v;
             break;
           }
@@ -251,6 +346,7 @@
             }
             contourCount++;
             for (var sb = 0; sb < spts.length; sb++) bbox(spts[sb][0] * unitFactor, spts[sb][1] * unitFactor);
+            addPath(spts, false);
             break;
           }
           case 'ELLIPSE': {
@@ -268,6 +364,7 @@
             contourCount++;
             bbox((ecx - a) * unitFactor, (ecy - a) * unitFactor);
             bbox((ecx + a) * unitFactor, (ecy + a) * unitFactor);
+            addPath(sampleEllipse(ecx, ecy, majX, majY, ratio, t1, t2), frac >= 0.999);
             break;
           }
           case 'POINT':
@@ -290,7 +387,8 @@
         contourCount: contourCount,
         skipped: skipped,
         hasBlocks: hasBlocks,
-        unitFactor: unitFactor
+        unitFactor: unitFactor,
+        paths: paths
       };
     }
 
@@ -316,14 +414,15 @@
       acc.area += areaTri;
       if (cr[2] > 0) acc.upArea += areaTri;
     }
-    function finalizeStl(acc, triangles) {
+    function finalizeStl(acc, triangles, verts) {
       return {
         kind: 'stl',
         bbox: { x: acc.maxX - acc.minX, y: acc.maxY - acc.minY, z: acc.maxZ - acc.minZ },
         volumeMm3: Math.abs(acc.volume),
         areaMm2: acc.area,
         upAreaMm2: acc.upArea,
-        triangles: triangles
+        triangles: triangles,
+        verts: verts
       };
     }
 
@@ -332,6 +431,7 @@
         var dv = new DataView(buffer);
         var n = dv.getUint32(80, true);
         var acc = makeStlAcc();
+        var verts = new Float32Array(n * 9);
         var CHUNK = 60000;
         var i = 0;
         function step() {
@@ -342,14 +442,18 @@
             var v2 = [dv.getFloat32(base + 12, true), dv.getFloat32(base + 16, true), dv.getFloat32(base + 20, true)];
             var v3 = [dv.getFloat32(base + 24, true), dv.getFloat32(base + 28, true), dv.getFloat32(base + 32, true)];
             accTri(acc, v1, v2, v3);
+            var vb = i * 9;
+            verts[vb] = v1[0]; verts[vb + 1] = v1[1]; verts[vb + 2] = v1[2];
+            verts[vb + 3] = v2[0]; verts[vb + 4] = v2[1]; verts[vb + 5] = v2[2];
+            verts[vb + 6] = v3[0]; verts[vb + 7] = v3[1]; verts[vb + 8] = v3[2];
           }
           if (i < n) {
             requestAnimationFrame(step);
           } else {
-            resolve(finalizeStl(acc, n));
+            resolve(finalizeStl(acc, n, verts));
           }
         }
-        if (n === 0) { resolve(finalizeStl(acc, 0)); return; }
+        if (n === 0) { resolve(finalizeStl(acc, 0, verts)); return; }
         requestAnimationFrame(step);
       });
     }
@@ -359,6 +463,7 @@
         var re = /vertex\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)/g;
         var acc = makeStlAcc();
         var tri = [];
+        var arr = [];
         var count = 0;
         var CHUNK = 60000;
         function step() {
@@ -368,13 +473,14 @@
             tri.push([parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])]);
             if (tri.length === 3) {
               accTri(acc, tri[0], tri[1], tri[2]);
+              arr.push(tri[0][0], tri[0][1], tri[0][2], tri[1][0], tri[1][1], tri[1][2], tri[2][0], tri[2][1], tri[2][2]);
               tri = [];
               count++;
               processed++;
             }
           }
           if (m === null) {
-            resolve(finalizeStl(acc, count));
+            resolve(finalizeStl(acc, count, new Float32Array(arr)));
           } else {
             requestAnimationFrame(step);
           }
@@ -485,6 +591,131 @@
       return { level: 'zema', label: 'Zema', note: 'Izmēri ievadīti manuāli — tāme balstīta uz aptuveniem parametriem.' };
     }
 
+    /* ----- Vizualizācija ----- */
+    function makeRotatingCanvas(drawFn) {
+      var canvas = document.createElement('canvas');
+      canvas.className = 'calc__preview-canvas';
+      canvas.width = 640;
+      canvas.height = 400;
+      var ctx = canvas.getContext('2d');
+      var rx = -0.5, ry = 0.7;
+      function redraw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#182120';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawFn(ctx, rx, ry, canvas);
+      }
+      redraw();
+      var dragging = false, lx = 0, ly = 0;
+      canvas.addEventListener('pointerdown', function (e) { dragging = true; lx = e.clientX; ly = e.clientY; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} });
+      canvas.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        var dx = e.clientX - lx, dy = e.clientY - ly;
+        lx = e.clientX; ly = e.clientY;
+        ry += dx * 0.012; rx += dy * 0.012;
+        redraw();
+      });
+      canvas.addEventListener('pointerup', function () { dragging = false; });
+      canvas.addEventListener('pointercancel', function () { dragging = false; });
+      return canvas;
+    }
+
+    function project3d(px, py, pz, rx, ry, scale, ox, oy) {
+      var y1 = py * Math.cos(rx) - pz * Math.sin(rx);
+      var z1 = py * Math.sin(rx) + pz * Math.cos(rx);
+      var x2 = px * Math.cos(ry) + z1 * Math.sin(ry);
+      return [ox + x2 * scale, oy - y1 * scale];
+    }
+
+    function renderDxfPreview(parsed) {
+      var b = parsed.bbox;
+      var w = Math.max(b.x, 1), h = Math.max(b.y, 1);
+      var pad = Math.max(w, h) * 0.06 + 2;
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'calc__preview-svg');
+      svg.setAttribute('viewBox', (-pad) + ' ' + (-pad) + ' ' + (w + 2 * pad) + ' ' + (h + 2 * pad));
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-label', 'DXF kontūru skats no augšas');
+      var paths = parsed.paths || [];
+      for (var i = 0; i < paths.length; i++) {
+        var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', paths[i]);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'currentColor');
+        path.setAttribute('stroke-width', '1.5');
+        svg.appendChild(path);
+      }
+      previewEl.appendChild(svg);
+    }
+
+    function renderStlPreview(parsed) {
+      var b = parsed.bbox;
+      var n = parsed.triangles || 0;
+      var verts = parsed.verts;
+      var cx = b.x / 2, cy = b.y / 2, cz = b.z / 2;
+      var maxDim = Math.max(b.x, b.y, b.z, 1);
+      var stride = Math.max(1, Math.ceil(n / 20000));
+      var canvas = makeRotatingCanvas(function (ctx, rx, ry, canvas) {
+        var scale = Math.min(canvas.width, canvas.height) / maxDim * 0.82;
+        ctx.strokeStyle = 'rgba(203,205,204,0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (var i = 0; i < n; i += stride) {
+          var base = i * 9;
+          var last = null;
+          for (var v = 0; v < 3; v++) {
+            var px = verts[base + v * 3] - cx;
+            var py = verts[base + v * 3 + 1] - cy;
+            var pz = verts[base + v * 3 + 2] - cz;
+            var p = project3d(px, py, pz, rx, ry, scale, canvas.width / 2, canvas.height / 2);
+            if (last) { ctx.moveTo(last[0], last[1]); ctx.lineTo(p[0], p[1]); }
+            else { ctx.moveTo(p[0], p[1]); }
+            last = p;
+          }
+          ctx.closePath();
+        }
+        ctx.stroke();
+      });
+      previewEl.appendChild(canvas);
+    }
+
+    function renderStepPreview(parsed) {
+      var b = parsed.bbox;
+      var corners = [
+        [0, 0, 0], [b.x, 0, 0], [b.x, b.y, 0], [0, b.y, 0],
+        [0, 0, b.z], [b.x, 0, b.z], [b.x, b.y, b.z], [0, b.y, b.z]
+      ];
+      var edges = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+      var cx = b.x / 2, cy = b.y / 2, cz = b.z / 2;
+      var maxDim = Math.max(b.x, b.y, b.z, 1);
+      var canvas = makeRotatingCanvas(function (ctx, rx, ry, canvas) {
+        var scale = Math.min(canvas.width, canvas.height) / maxDim * 0.82;
+        var proj = [];
+        for (var i = 0; i < corners.length; i++) {
+          proj.push(project3d(corners[i][0] - cx, corners[i][1] - cy, corners[i][2] - cz, rx, ry, scale, canvas.width / 2, canvas.height / 2));
+        }
+        ctx.strokeStyle = '#acbec0';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (var e = 0; e < edges.length; e++) {
+          ctx.moveTo(proj[edges[e][0]][0], proj[edges[e][0]][1]);
+          ctx.lineTo(proj[edges[e][1]][0], proj[edges[e][1]][1]);
+        }
+        ctx.stroke();
+      });
+      previewEl.appendChild(canvas);
+    }
+
+    function renderPreview(file) {
+      previewEl.innerHTML = '';
+      previewEl.hidden = false;
+      var parsed = file.parsed;
+      if (parsed.kind === 'dxf') renderDxfPreview(parsed);
+      else if (parsed.kind === 'stl') renderStlPreview(parsed);
+      else renderStepPreview(parsed);
+    }
+
     /* ----- UI ----- */
     var fileTab = document.getElementById('tab-file');
     var manualTab = document.getElementById('tab-manual');
@@ -496,6 +727,7 @@
     var fileNameEl = document.getElementById('calc-file-name');
     var fileMetaEl = document.getElementById('calc-file-meta');
     var fileGeoEl = document.getElementById('calc-file-geo');
+    var previewEl = document.getElementById('calc-preview');
     var fileRemove = document.getElementById('calc-file-remove');
     var thicknessField = document.getElementById('calc-thickness-field');
     var thicknessEl = document.getElementById('calc-thickness');
@@ -758,6 +990,8 @@
       state.fileError = msg;
       state.file = null;
       filecard.hidden = true;
+      previewEl.innerHTML = '';
+      previewEl.hidden = true;
       fileInput.value = '';
       updateThicknessVisibility();
       recalculate();
@@ -767,6 +1001,8 @@
       state.file = null;
       state.fileError = null;
       filecard.hidden = true;
+      previewEl.innerHTML = '';
+      previewEl.hidden = true;
       fileInput.value = '';
       updateThicknessVisibility();
       recalculate();
@@ -788,6 +1024,7 @@
         state.fileError = null;
         unitsEl.value = '1';
         renderFileCard(file, parsed);
+        renderPreview(state.file);
         updateThicknessVisibility();
         recalculate();
       }).catch(function (err) {
