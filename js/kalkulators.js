@@ -597,8 +597,8 @@
     function makeViewer(drawFn) {
       var canvas = document.createElement('canvas');
       canvas.className = 'calc__preview-canvas';
-      canvas.width = 800;
-      canvas.height = 520;
+      canvas.width = 1200;
+      canvas.height = 600;
       var ctx = canvas.getContext('2d');
       var view = { rx: -0.55, ry: 0.75, scale: 1, panX: 0, panY: 0 };
       var pointers = new Map();
@@ -879,6 +879,7 @@
       manualTab.setAttribute('aria-selected', String(mode === 'manual'));
       panelFile.hidden = mode !== 'file';
       panelManual.hidden = mode !== 'manual';
+      previewEl.hidden = mode !== 'file' || !state.file;
       updateThicknessVisibility();
       recalculate();
     }
