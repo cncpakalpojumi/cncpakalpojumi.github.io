@@ -63,24 +63,41 @@
 
 /* Faila vizualizācija */
 .calc__preview {
-  position: relative;
   margin-top: var(--space-4);
   border: 1px solid var(--line);
   background: #182120;
   overflow: hidden;
 }
-.calc__preview-hint {
-  position: absolute;
-  left: 0.6rem;
-  bottom: 0.5rem;
+.calc__preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid rgba(203, 205, 204, 0.12);
+}
+.calc__preview-title {
   font-size: 0.72rem;
-  color: rgba(203, 205, 204, 0.55);
-  pointer-events: none;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(203, 205, 204, 0.6);
+}
+.calc__preview-hint {
+  font-size: 0.72rem;
+  color: rgba(203, 205, 204, 0.5);
+}
+.calc__preview-body {
+  background-color: #182120;
+  background-image:
+    linear-gradient(rgba(182, 74, 27, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(182, 74, 27, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 .calc__preview-svg {
   display: block;
   width: 100%;
-  height: 260px;
+  height: 400px;
   color: #cbcdcc;
 }
 .calc__preview-canvas {

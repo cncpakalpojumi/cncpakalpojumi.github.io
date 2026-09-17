@@ -597,8 +597,8 @@
     function makeViewer(drawFn) {
       var canvas = document.createElement('canvas');
       canvas.className = 'calc__preview-canvas';
-      canvas.width = 640;
-      canvas.height = 400;
+      canvas.width = 800;
+      canvas.height = 520;
       var ctx = canvas.getContext('2d');
       var view = { rx: -0.55, ry: 0.75, scale: 1, panX: 0, panY: 0 };
       var pointers = new Map();
@@ -607,8 +607,6 @@
       function redraw() {
         scheduled = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#182120';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
         drawFn(ctx, view, canvas);
       }
       function requestRedraw() {
@@ -789,32 +787,30 @@
         path.setAttribute('stroke-width', '1.5');
         svg.appendChild(path);
       }
-      previewEl.appendChild(svg);
+      previewBody.appendChild(svg);
     }
 
     function renderStlPreview(parsed) {
       var canvas = buildSolidViewer(parsed.verts, parsed.triangles || 0, parsed.bbox, parsed.center);
-      previewEl.appendChild(canvas);
+      previewBody.appendChild(canvas);
     }
 
     function renderStepPreview(parsed) {
       var canvas = buildSolidViewer(makeBoxVerts(parsed.bbox), 12, parsed.bbox);
-      previewEl.appendChild(canvas);
+      previewBody.appendChild(canvas);
     }
 
     function renderPreview(file) {
-      previewEl.innerHTML = '';
+      previewBody.innerHTML = '';
       previewEl.hidden = false;
       var parsed = file.parsed;
       if (parsed.kind === 'dxf') {
+        previewHint.hidden = true;
         renderDxfPreview(parsed);
       } else {
         if (parsed.kind === 'stl') renderStlPreview(parsed);
         else renderStepPreview(parsed);
-        var hint = document.createElement('span');
-        hint.className = 'calc__preview-hint';
-        hint.textContent = 'Velc, lai grieztu · ritentiņš tuvina · Shift + velc pārvieto';
-        previewEl.appendChild(hint);
+        previewHint.hidden = false;
       }
     }
 
@@ -830,6 +826,8 @@
     var fileMetaEl = document.getElementById('calc-file-meta');
     var fileGeoEl = document.getElementById('calc-file-geo');
     var previewEl = document.getElementById('calc-preview');
+    var previewBody = document.getElementById('calc-preview-body');
+    var previewHint = document.getElementById('calc-preview-hint');
     var fileRemove = document.getElementById('calc-file-remove');
     var thicknessField = document.getElementById('calc-thickness-field');
     var thicknessEl = document.getElementById('calc-thickness');
@@ -1092,8 +1090,9 @@
       state.fileError = msg;
       state.file = null;
       filecard.hidden = true;
-      previewEl.innerHTML = '';
+      previewBody.innerHTML = '';
       previewEl.hidden = true;
+      previewHint.hidden = true;
       fileInput.value = '';
       updateThicknessVisibility();
       recalculate();
@@ -1103,8 +1102,9 @@
       state.file = null;
       state.fileError = null;
       filecard.hidden = true;
-      previewEl.innerHTML = '';
+      previewBody.innerHTML = '';
       previewEl.hidden = true;
+      previewHint.hidden = true;
       fileInput.value = '';
       updateThicknessVisibility();
       recalculate();
