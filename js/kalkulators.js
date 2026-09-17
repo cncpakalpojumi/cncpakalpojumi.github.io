@@ -384,6 +384,7 @@
         kind: 'dxf',
         lengthMm: lengthMm,
         bbox: { x: isFinite(minX) ? Math.max(0, maxX - minX) : 0, y: isFinite(minY) ? Math.max(0, maxY - minY) : 0 },
+        bounds: { minX: isFinite(minX) ? minX : 0, minY: isFinite(minY) ? minY : 0, maxX: isFinite(maxX) ? maxX : 0, maxY: isFinite(maxY) ? maxY : 0 },
         contourCount: contourCount,
         skipped: skipped,
         hasBlocks: hasBlocks,
@@ -418,6 +419,7 @@
       return {
         kind: 'stl',
         bbox: { x: acc.maxX - acc.minX, y: acc.maxY - acc.minY, z: acc.maxZ - acc.minZ },
+        center: { x: (acc.minX + acc.maxX) / 2, y: (acc.minY + acc.maxY) / 2, z: (acc.minZ + acc.maxZ) / 2 },
         volumeMm3: Math.abs(acc.volume),
         areaMm2: acc.area,
         upAreaMm2: acc.upArea,
@@ -663,7 +665,7 @@
       return canvas;
     }
 
-    function buildSolidViewer(verts, triCount, bbox) {
+    function buildSolidViewer(verts, triCount, bbox, center) {
       var MAX_TRIS = 9000;
       var drawnCount = Math.min(triCount, MAX_TRIS);
       var stride = Math.max(1, Math.floor(triCount / drawnCount));
@@ -679,14 +681,16 @@
         norms[k] = nx / len; norms[k + 1] = ny / len; norms[k + 2] = nz / len;
       }
 
-      var cx = bbox.x / 2, cy = bbox.y / 2, cz = bbox.z / 2;
+      var cx = center ? center.x : bbox.x / 2;
+      var cy = center ? center.y : bbox.y / 2;
+      var cz = center ? center.z : bbox.z / 2;
       var maxDim = Math.max(bbox.x, bbox.y, bbox.z, 1);
       var Lx = 0.35, Ly = 0.55, Lz = 0.75;
       var Ll = Math.sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
       Lx /= Ll; Ly /= Ll; Lz /= Ll;
 
       return makeViewer(function (ctx, view, canvas) {
-        var scale = view.scale * Math.min(canvas.width, canvas.height) / maxDim * 0.82;
+        var scale = view.scale * Math.min(canvas.width, canvas.height) / maxDim * 0.95;
         var ox = canvas.width / 2 + view.panX;
         var oy = canvas.height / 2 + view.panY;
         var cosX = Math.cos(view.rx), sinX = Math.sin(view.rx);
@@ -767,12 +771,12 @@
     }
 
     function renderDxfPreview(parsed) {
-      var b = parsed.bbox;
-      var w = Math.max(b.x, 1), h = Math.max(b.y, 1);
+      var b = parsed.bounds || { minX: 0, minY: 0, maxX: parsed.bbox.x || 0, maxY: parsed.bbox.y || 0 };
+      var w = Math.max(b.maxX - b.minX, 1), h = Math.max(b.maxY - b.minY, 1);
       var pad = Math.max(w, h) * 0.06 + 2;
       var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('class', 'calc__preview-svg');
-      svg.setAttribute('viewBox', (-pad) + ' ' + (-pad) + ' ' + (w + 2 * pad) + ' ' + (h + 2 * pad));
+      svg.setAttribute('viewBox', (b.minX - pad) + ' ' + (-b.maxY - pad) + ' ' + (w + 2 * pad) + ' ' + (h + 2 * pad));
       svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       svg.setAttribute('role', 'img');
       svg.setAttribute('aria-label', 'DXF kontūru skats no augšas');
@@ -789,7 +793,7 @@
     }
 
     function renderStlPreview(parsed) {
-      var canvas = buildSolidViewer(parsed.verts, parsed.triangles || 0, parsed.bbox);
+      var canvas = buildSolidViewer(parsed.verts, parsed.triangles || 0, parsed.bbox, parsed.center);
       previewEl.appendChild(canvas);
     }
 
