@@ -594,7 +594,163 @@
     }
 
     /* ----- Vizualizācija ----- */
+    function makeViewCube(view, requestRedraw) {
+      var el = document.createElement('canvas');
+      el.className = 'calc__viewcube';
+      el.width = 232;
+      el.height = 232;
+      var ctx = el.getContext('2d');
+
+      var V = [
+        [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
+        [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
+      ];
+      var faces = [
+        { idx: [0, 4, 7, 3], n: [-1, 0, 0], t: [0, Math.PI / 2] },
+        { idx: [1, 2, 6, 5], n: [1, 0, 0], t: [0, -Math.PI / 2] },
+        { idx: [0, 1, 5, 4], n: [0, -1, 0], t: [-Math.PI / 2, 0] },
+        { idx: [3, 7, 6, 2], n: [0, 1, 0], t: [Math.PI / 2, 0] },
+        { idx: [0, 3, 2, 1], n: [0, 0, -1], t: [Math.PI, 0] },
+        { idx: [4, 5, 6, 7], n: [0, 0, 1], t: [0, 0] }
+      ];
+      var iso = Math.atan(1 / Math.SQRT2);
+      var corners = [
+        [-3 * Math.PI / 4, iso],
+        [-3 * Math.PI / 4, -iso],
+        [3 * Math.PI / 4, -iso],
+        [3 * Math.PI / 4, iso],
+        [-Math.PI / 4, iso],
+        [-Math.PI / 4, -iso],
+        [Math.PI / 4, -iso],
+        [Math.PI / 4, iso]
+      ];
+
+      var Lx = 0.35, Ly = 0.55, Lz = 0.75;
+      var Ll = Math.sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
+      Lx /= Ll; Ly /= Ll; Lz /= Ll;
+
+      var stPts = null;
+      var stFaces = null;
+      var anim = null;
+
+      function render(view) {
+        var W = el.width, H = el.height;
+        var s = W * 0.27;
+        var cx = W / 2, cy = H / 2;
+        var cosX = Math.cos(view.rx), sinX = Math.sin(view.rx);
+        var cosY = Math.cos(view.ry), sinY = Math.sin(view.ry);
+
+        var pts = [];
+        for (var i = 0; i < 8; i++) {
+          var x = V[i][0], y = V[i][1], z = V[i][2];
+          var y1 = y * cosX - z * sinX;
+          var z1 = y * sinX + z * cosX;
+          var x2 = x * cosY + z1 * sinY;
+          var z2 = -x * sinY + z1 * cosY;
+          pts.push({ x: cx + x2 * s, y: cy - y1 * s, z: z2 });
+        }
+
+        var drawn = [];
+        for (var f = 0; f < faces.length; f++) {
+          var fa = faces[f];
+          var p = [pts[fa.idx[0]], pts[fa.idx[1]], pts[fa.idx[2]], pts[fa.idx[3]]];
+          var d = (p[0].z + p[1].z + p[2].z + p[3].z) / 4;
+          var n = fa.n;
+          var nY1 = n[1] * cosX - n[2] * sinX;
+          var nZ1 = n[1] * sinX + n[2] * cosX;
+          var nX2 = n[0] * cosY + nZ1 * sinY;
+          var nZ2 = -n[0] * sinY + nZ1 * cosY;
+          var lam = Math.abs(nX2 * Lx + nY1 * Ly + nZ2 * Lz);
+          var sh = 0.3 + 0.7 * lam;
+          drawn.push({
+            d: d,
+            p: p,
+            f: f,
+            col: 'rgb(' + Math.round(203 * sh) + ',' + Math.round(205 * sh) + ',' + Math.round(204 * sh) + ')'
+          });
+        }
+        drawn.sort(function (a, b) { return b.d - a.d; });
+
+        ctx.clearRect(0, 0, W, H);
+        for (var j = 0; j < drawn.length; j++) {
+          var it = drawn[j];
+          ctx.beginPath();
+          ctx.moveTo(it.p[0].x, it.p[0].y);
+          ctx.lineTo(it.p[1].x, it.p[1].y);
+          ctx.lineTo(it.p[2].x, it.p[2].y);
+          ctx.lineTo(it.p[3].x, it.p[3].y);
+          ctx.closePath();
+          ctx.fillStyle = it.col;
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(24, 33, 32, 0.55)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        stPts = pts;
+        stFaces = drawn;
+      }
+
+      function pointInPoly(x, y, p) {
+        var n = p.length, inside = false;
+        for (var i = 0, j = n - 1; i < n; j = i++) {
+          if ((p[i].y > y) !== (p[j].y > y) &&
+              x < (p[j].x - p[i].x) * (y - p[i].y) / (p[j].y - p[i].y) + p[i].x) {
+            inside = !inside;
+          }
+        }
+        return inside;
+      }
+
+      function setView(trx, try_) {
+        if (anim) cancelAnimationFrame(anim);
+        var sx = view.rx, sy = view.ry;
+        var start = performance.now();
+        var dur = 240;
+        function tick(now) {
+          var t = Math.min(1, (now - start) / dur);
+          var e = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+          view.rx = sx + (trx - sx) * e;
+          view.ry = sy + (try_ - sy) * e;
+          requestRedraw();
+          if (t < 1) anim = requestAnimationFrame(tick);
+          else anim = null;
+        }
+        anim = requestAnimationFrame(tick);
+      }
+
+      el.addEventListener('click', function (e) {
+        if (!stPts) return;
+        var r = el.getBoundingClientRect();
+        var x = (e.clientX - r.left) * (el.width / r.width);
+        var y = (e.clientY - r.top) * (el.height / r.height);
+
+        var best = -1, bestDist = 15 * 15;
+        for (var i = 0; i < 8; i++) {
+          var dx = stPts[i].x - x, dy = stPts[i].y - y;
+          var dd = dx * dx + dy * dy;
+          if (dd < bestDist) { bestDist = dd; best = i; }
+        }
+        if (best >= 0) {
+          setView(corners[best][0], corners[best][1]);
+          return;
+        }
+        for (var j = stFaces.length - 1; j >= 0; j--) {
+          var it = stFaces[j];
+          if (pointInPoly(x, y, it.p)) {
+            setView(faces[it.f].t[0], faces[it.f].t[1]);
+            return;
+          }
+        }
+      });
+
+      return { el: el, render: render };
+    }
+
     function makeViewer(drawFn) {
+      var wrap = document.createElement('div');
+      wrap.className = 'calc__preview-wrap';
+
       var canvas = document.createElement('canvas');
       canvas.className = 'calc__preview-canvas';
       canvas.width = 1200;
@@ -604,10 +760,13 @@
       var pointers = new Map();
       var scheduled = false;
 
+      var cube = makeViewCube(view, requestRedraw);
+
       function redraw() {
         scheduled = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawFn(ctx, view, canvas);
+        cube.render(view);
       }
       function requestRedraw() {
         if (scheduled) return;
@@ -641,8 +800,6 @@
           } else {
             view.ry += dx * 0.01;
             view.rx += dy * 0.01;
-            if (view.rx > 1.45) view.rx = 1.45;
-            if (view.rx < -1.45) view.rx = -1.45;
           }
         }
         p.x = e.clientX;
@@ -659,8 +816,10 @@
       }, { passive: false });
       canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
+      wrap.appendChild(canvas);
+      wrap.appendChild(cube.el);
       redraw();
-      return canvas;
+      return wrap;
     }
 
     function buildSolidViewer(verts, triCount, bbox, center) {
@@ -830,13 +989,13 @@
     }
 
     function renderStlPreview(parsed) {
-      var canvas = buildSolidViewer(parsed.verts, parsed.triangles || 0, parsed.bbox, parsed.center);
-      previewBody.appendChild(canvas);
+      var viewer = buildSolidViewer(parsed.verts, parsed.triangles || 0, parsed.bbox, parsed.center);
+      previewBody.appendChild(viewer);
     }
 
     function renderStepPreview(parsed) {
-      var canvas = buildSolidViewer(makeBoxVerts(parsed.bbox), 12, parsed.bbox);
-      previewBody.appendChild(canvas);
+      var viewer = buildSolidViewer(makeBoxVerts(parsed.bbox), 12, parsed.bbox);
+      previewBody.appendChild(viewer);
     }
 
     function renderPreview(file) {

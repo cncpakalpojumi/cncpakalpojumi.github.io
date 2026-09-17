@@ -99,6 +99,7 @@
   height: 400px;
   color: #cbcdcc;
 }
+.calc__preview-wrap { position: relative; }
 .calc__preview-canvas {
   display: block;
   width: 100%;
@@ -107,6 +108,18 @@
   touch-action: none;
 }
 .calc__preview-canvas:active { cursor: grabbing; }
+.calc__viewcube {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 116px;
+  height: 116px;
+  background: #182120;
+  border: 1px solid rgba(203, 205, 204, 0.16);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.calc__viewcube:hover { border-color: rgba(203, 205, 204, 0.35); }
 
 /* Faila karte */
 .calc__filecard {
