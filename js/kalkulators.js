@@ -664,14 +664,13 @@
     }
 
     function buildSolidViewer(verts, triCount, bbox, center) {
-      var MAX_TRIS = 9000;
+      var MAX_TRIS = 60000;
       var drawnCount = Math.min(triCount, MAX_TRIS);
-      var stride = Math.max(1, Math.floor(triCount / drawnCount));
 
       var norms = new Float32Array(drawnCount * 3);
       var i, k;
       for (i = 0, k = 0; i < drawnCount; i++, k += 3) {
-        var vi = i * stride * 9;
+        var vi = i * 9;
         var ax = verts[vi + 3] - verts[vi], ay = verts[vi + 4] - verts[vi + 1], az = verts[vi + 5] - verts[vi + 2];
         var bx = verts[vi + 6] - verts[vi], by = verts[vi + 7] - verts[vi + 1], bz = verts[vi + 8] - verts[vi + 2];
         var nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx;
@@ -687,35 +686,69 @@
       var Ll = Math.sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
       Lx /= Ll; Ly /= Ll; Lz /= Ll;
 
+      var bufs = null;
+
       return makeViewer(function (ctx, view, canvas) {
-        var scale = view.scale * Math.min(canvas.width, canvas.height) / maxDim * 0.95;
-        var ox = canvas.width / 2 + view.panX;
-        var oy = canvas.height / 2 + view.panY;
+        var W = canvas.width, H = canvas.height;
+        if (!bufs || bufs.W !== W || bufs.H !== H) {
+          bufs = { W: W, H: H, img: ctx.createImageData(W, H), zbuf: new Float32Array(W * H) };
+        }
+        var img = bufs.img;
+        var pix = img.data;
+        var zbuf = bufs.zbuf;
+        zbuf.fill(Infinity);
+        pix.fill(0);
+
+        var scale = view.scale * Math.min(W, H) / maxDim * 0.95;
+        var ox = W / 2 + view.panX;
+        var oy = H / 2 + view.panY;
         var cosX = Math.cos(view.rx), sinX = Math.sin(view.rx);
         var cosY = Math.cos(view.ry), sinY = Math.sin(view.ry);
 
-        var tris = [];
         for (var t = 0; t < drawnCount; t++) {
-          var base = t * stride * 9;
-          var depth = 0;
-          var pts = new Float32Array(6);
-          var inside = false;
-          for (var v = 0; v < 3; v++) {
-            var px = verts[base + v * 3] - cx;
-            var py = verts[base + v * 3 + 1] - cy;
-            var pz = verts[base + v * 3 + 2] - cz;
-            var y1 = py * cosX - pz * sinX;
-            var z1 = py * sinX + pz * cosX;
-            var x2 = px * cosY + z1 * sinY;
-            var z2 = -px * sinY + z1 * cosY;
-            var sx = ox + x2 * scale;
-            var sy = oy - y1 * scale;
-            pts[v * 2] = sx; pts[v * 2 + 1] = sy;
-            depth += z2;
-            if (sx >= 0 && sx <= canvas.width && sy >= 0 && sy <= canvas.height) inside = true;
+          var base = t * 9;
+          var px, py, pz, y1, z1, v0x, v0y, v0z, v1x, v1y, v1z, v2x, v2y, v2z;
+
+          px = verts[base] - cx; py = verts[base + 1] - cy; pz = verts[base + 2] - cz;
+          y1 = py * cosX - pz * sinX;
+          z1 = py * sinX + pz * cosX;
+          v0x = ox + (px * cosY + z1 * sinY) * scale;
+          v0y = oy - y1 * scale;
+          v0z = -px * sinY + z1 * cosY;
+
+          px = verts[base + 3] - cx; py = verts[base + 4] - cy; pz = verts[base + 5] - cz;
+          y1 = py * cosX - pz * sinX;
+          z1 = py * sinX + pz * cosX;
+          v1x = ox + (px * cosY + z1 * sinY) * scale;
+          v1y = oy - y1 * scale;
+          v1z = -px * sinY + z1 * cosY;
+
+          px = verts[base + 6] - cx; py = verts[base + 7] - cy; pz = verts[base + 8] - cz;
+          y1 = py * cosX - pz * sinX;
+          z1 = py * sinX + pz * cosX;
+          v2x = ox + (px * cosY + z1 * sinY) * scale;
+          v2y = oy - y1 * scale;
+          v2z = -px * sinY + z1 * cosY;
+
+          var minX = Math.max(0, Math.floor(Math.min(v0x, v1x, v2x)));
+          var maxX = Math.min(W - 1, Math.ceil(Math.max(v0x, v1x, v2x)));
+          var minY = Math.max(0, Math.floor(Math.min(v0y, v1y, v2y)));
+          var maxY = Math.min(H - 1, Math.ceil(Math.max(v0y, v1y, v2y)));
+          if (minX > maxX || minY > maxY) continue;
+
+          var area2 = (v1x - v0x) * (v2y - v0y) - (v2x - v0x) * (v1y - v0y);
+          if (area2 === 0) continue;
+          if (area2 < 0) {
+            var tx = v1x, ty = v1y, tz = v1z;
+            v1x = v2x; v1y = v2y; v1z = v2z;
+            v2x = tx; v2y = ty; v2z = tz;
+            area2 = -area2;
           }
-          if (!inside) continue;
-          depth /= 3;
+          var invA = 1 / area2;
+          var dx10 = v1x - v0x, dy10 = v1y - v0y;
+          var dx20 = v2x - v0x, dy20 = v2y - v0y;
+          var dz10 = v1z - v0z, dz20 = v2z - v0z;
+
           var nk = t * 3;
           var nY1 = norms[nk + 1] * cosX - norms[nk + 2] * sinX;
           var nZ1 = norms[nk + 1] * sinX + norms[nk + 2] * cosX;
@@ -723,22 +756,28 @@
           var nZ2 = -norms[nk] * sinY + nZ1 * cosY;
           var lambert = Math.abs(nX2 * Lx + nY1 * Ly + nZ2 * Lz);
           var sh = 0.26 + 0.74 * lambert;
-          tris.push({ d: depth, pts: pts, c: 'rgb(' + Math.round(203 * sh) + ',' + Math.round(205 * sh) + ',' + Math.round(204 * sh) + ')' });
+          var rr = Math.round(203 * sh), gg = Math.round(205 * sh), bb = Math.round(204 * sh);
+
+          for (var yy = minY; yy <= maxY; yy++) {
+            var fy = yy + 0.5 - v0y;
+            var row = yy * W;
+            for (var xx = minX; xx <= maxX; xx++) {
+              var fx = xx + 0.5 - v0x;
+              var w1 = (fx * dy20 - fy * dx20) * invA;
+              var w2 = (fy * dx10 - fx * dy10) * invA;
+              var w0 = 1 - w1 - w2;
+              if (w0 < 0 || w1 < 0 || w2 < 0) continue;
+              var z = v0z + w1 * dz10 + w2 * dz20;
+              var idx = row + xx;
+              if (z >= zbuf[idx]) continue;
+              zbuf[idx] = z;
+              var o = idx * 4;
+              pix[o] = rr; pix[o + 1] = gg; pix[o + 2] = bb; pix[o + 3] = 255;
+            }
+          }
         }
-        tris.sort(function (a, b) { return b.d - a.d; });
-        for (var j = 0; j < tris.length; j++) {
-          var tr = tris[j];
-          ctx.fillStyle = tr.c;
-          ctx.strokeStyle = tr.c;
-          ctx.lineWidth = 0.8;
-          ctx.beginPath();
-          ctx.moveTo(tr.pts[0], tr.pts[1]);
-          ctx.lineTo(tr.pts[2], tr.pts[3]);
-          ctx.lineTo(tr.pts[4], tr.pts[5]);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        }
+
+        ctx.putImageData(img, 0, 0);
       });
     }
 
