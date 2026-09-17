@@ -121,6 +121,22 @@
 }
 .calc__viewcube:hover { border-color: rgba(203, 205, 204, 0.35); }
 
+/* Vienību izvēle — izcelta, jo STL/STEP nesatur vienību info */
+.calc__units-field {
+  padding: var(--space-4);
+  border: 1px solid var(--accent);
+  background: rgba(182, 74, 27, 0.08);
+}
+.calc__units-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent);
+}
+.calc__units-icon { width: 1rem; height: 1rem; flex-shrink: 0; }
+.calc__units-field .select { border-color: var(--accent); font-weight: 600; }
+.calc__units-field .field__hint { color: var(--text); }
+
 /* Faila karte */
 .calc__filecard {
   display: flex;
