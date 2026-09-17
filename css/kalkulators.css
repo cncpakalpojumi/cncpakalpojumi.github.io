@@ -63,10 +63,19 @@
 
 /* Faila vizualizācija */
 .calc__preview {
+  position: relative;
   margin-top: var(--space-4);
   border: 1px solid var(--line);
   background: #182120;
   overflow: hidden;
+}
+.calc__preview-hint {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.5rem;
+  font-size: 0.72rem;
+  color: rgba(203, 205, 204, 0.55);
+  pointer-events: none;
 }
 .calc__preview-svg {
   display: block;

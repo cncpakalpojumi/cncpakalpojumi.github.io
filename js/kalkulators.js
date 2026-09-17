@@ -448,13 +448,13 @@
             verts[vb + 6] = v3[0]; verts[vb + 7] = v3[1]; verts[vb + 8] = v3[2];
           }
           if (i < n) {
-            requestAnimationFrame(step);
+            setTimeout(step, 0);
           } else {
             resolve(finalizeStl(acc, n, verts));
           }
         }
         if (n === 0) { resolve(finalizeStl(acc, 0, verts)); return; }
-        requestAnimationFrame(step);
+        setTimeout(step, 0);
       });
     }
 
@@ -482,10 +482,10 @@
           if (m === null) {
             resolve(finalizeStl(acc, count, new Float32Array(arr)));
           } else {
-            requestAnimationFrame(step);
+            setTimeout(step, 0);
           }
         }
-        requestAnimationFrame(step);
+        setTimeout(step, 0);
       });
     }
 
@@ -592,39 +592,178 @@
     }
 
     /* ----- Vizualizācija ----- */
-    function makeRotatingCanvas(drawFn) {
+    function makeViewer(drawFn) {
       var canvas = document.createElement('canvas');
       canvas.className = 'calc__preview-canvas';
       canvas.width = 640;
       canvas.height = 400;
       var ctx = canvas.getContext('2d');
-      var rx = -0.5, ry = 0.7;
+      var view = { rx: -0.55, ry: 0.75, scale: 1, panX: 0, panY: 0 };
+      var pointers = new Map();
+      var scheduled = false;
+
       function redraw() {
+        scheduled = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#182120';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawFn(ctx, rx, ry, canvas);
+        drawFn(ctx, view, canvas);
       }
-      redraw();
-      var dragging = false, lx = 0, ly = 0;
-      canvas.addEventListener('pointerdown', function (e) { dragging = true; lx = e.clientX; ly = e.clientY; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} });
-      canvas.addEventListener('pointermove', function (e) {
-        if (!dragging) return;
-        var dx = e.clientX - lx, dy = e.clientY - ly;
-        lx = e.clientX; ly = e.clientY;
-        ry += dx * 0.012; rx += dy * 0.012;
-        redraw();
+      function requestRedraw() {
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(redraw);
+      }
+
+      canvas.addEventListener('pointerdown', function (e) {
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       });
-      canvas.addEventListener('pointerup', function () { dragging = false; });
-      canvas.addEventListener('pointercancel', function () { dragging = false; });
+      canvas.addEventListener('pointermove', function (e) {
+        var p = pointers.get(e.pointerId);
+        if (!p) return;
+        var ids = Array.from(pointers.keys());
+        if (ids.length === 2) {
+          var otherId = ids[0] === e.pointerId ? ids[1] : ids[0];
+          var other = pointers.get(otherId);
+          var oldDist = Math.hypot(p.x - other.x, p.y - other.y);
+          var newDist = Math.hypot(e.clientX - other.x, e.clientY - other.y);
+          if (oldDist > 1) {
+            view.scale = Math.max(0.2, Math.min(24, view.scale * (newDist / oldDist)));
+          }
+          view.panX += ((e.clientX + other.x) - (p.x + other.x)) / 2;
+          view.panY += ((e.clientY + other.y) - (p.y + other.y)) / 2;
+        } else {
+          var dx = e.clientX - p.x, dy = e.clientY - p.y;
+          if (e.buttons & 4 || e.buttons & 2 || e.shiftKey) {
+            view.panX += dx;
+            view.panY += dy;
+          } else {
+            view.ry += dx * 0.01;
+            view.rx += dy * 0.01;
+            if (view.rx > 1.45) view.rx = 1.45;
+            if (view.rx < -1.45) view.rx = -1.45;
+          }
+        }
+        p.x = e.clientX;
+        p.y = e.clientY;
+        requestRedraw();
+      });
+      function end(e) { pointers.delete(e.pointerId); }
+      canvas.addEventListener('pointerup', end);
+      canvas.addEventListener('pointercancel', end);
+      canvas.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        view.scale = Math.max(0.2, Math.min(24, view.scale * Math.exp(-e.deltaY * 0.0012)));
+        requestRedraw();
+      }, { passive: false });
+      canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+      redraw();
       return canvas;
     }
 
-    function project3d(px, py, pz, rx, ry, scale, ox, oy) {
-      var y1 = py * Math.cos(rx) - pz * Math.sin(rx);
-      var z1 = py * Math.sin(rx) + pz * Math.cos(rx);
-      var x2 = px * Math.cos(ry) + z1 * Math.sin(ry);
-      return [ox + x2 * scale, oy - y1 * scale];
+    function buildSolidViewer(verts, triCount, bbox) {
+      var MAX_TRIS = 9000;
+      var drawnCount = Math.min(triCount, MAX_TRIS);
+      var stride = Math.max(1, Math.floor(triCount / drawnCount));
+
+      var norms = new Float32Array(drawnCount * 3);
+      var i, k;
+      for (i = 0, k = 0; i < drawnCount; i++, k += 3) {
+        var vi = i * stride * 9;
+        var ax = verts[vi + 3] - verts[vi], ay = verts[vi + 4] - verts[vi + 1], az = verts[vi + 5] - verts[vi + 2];
+        var bx = verts[vi + 6] - verts[vi], by = verts[vi + 7] - verts[vi + 1], bz = verts[vi + 8] - verts[vi + 2];
+        var nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx;
+        var len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+        norms[k] = nx / len; norms[k + 1] = ny / len; norms[k + 2] = nz / len;
+      }
+
+      var cx = bbox.x / 2, cy = bbox.y / 2, cz = bbox.z / 2;
+      var maxDim = Math.max(bbox.x, bbox.y, bbox.z, 1);
+      var Lx = 0.35, Ly = 0.55, Lz = 0.75;
+      var Ll = Math.sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
+      Lx /= Ll; Ly /= Ll; Lz /= Ll;
+
+      return makeViewer(function (ctx, view, canvas) {
+        var scale = view.scale * Math.min(canvas.width, canvas.height) / maxDim * 0.82;
+        var ox = canvas.width / 2 + view.panX;
+        var oy = canvas.height / 2 + view.panY;
+        var cosX = Math.cos(view.rx), sinX = Math.sin(view.rx);
+        var cosY = Math.cos(view.ry), sinY = Math.sin(view.ry);
+
+        var tris = [];
+        for (var t = 0; t < drawnCount; t++) {
+          var base = t * stride * 9;
+          var depth = 0;
+          var pts = new Float32Array(6);
+          var inside = false;
+          for (var v = 0; v < 3; v++) {
+            var px = verts[base + v * 3] - cx;
+            var py = verts[base + v * 3 + 1] - cy;
+            var pz = verts[base + v * 3 + 2] - cz;
+            var y1 = py * cosX - pz * sinX;
+            var z1 = py * sinX + pz * cosX;
+            var x2 = px * cosY + z1 * sinY;
+            var z2 = -px * sinY + z1 * cosY;
+            var sx = ox + x2 * scale;
+            var sy = oy - y1 * scale;
+            pts[v * 2] = sx; pts[v * 2 + 1] = sy;
+            depth += z2;
+            if (sx >= 0 && sx <= canvas.width && sy >= 0 && sy <= canvas.height) inside = true;
+          }
+          if (!inside) continue;
+          depth /= 3;
+          var nk = t * 3;
+          var nY1 = norms[nk + 1] * cosX - norms[nk + 2] * sinX;
+          var nZ1 = norms[nk + 1] * sinX + norms[nk + 2] * cosX;
+          var nX2 = norms[nk] * cosY + nZ1 * sinY;
+          var nZ2 = -norms[nk] * sinY + nZ1 * cosY;
+          var lambert = Math.abs(nX2 * Lx + nY1 * Ly + nZ2 * Lz);
+          var sh = 0.26 + 0.74 * lambert;
+          tris.push({ d: depth, pts: pts, c: 'rgb(' + Math.round(203 * sh) + ',' + Math.round(205 * sh) + ',' + Math.round(204 * sh) + ')' });
+        }
+        tris.sort(function (a, b) { return b.d - a.d; });
+        for (var j = 0; j < tris.length; j++) {
+          var tr = tris[j];
+          ctx.fillStyle = tr.c;
+          ctx.strokeStyle = tr.c;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(tr.pts[0], tr.pts[1]);
+          ctx.lineTo(tr.pts[2], tr.pts[3]);
+          ctx.lineTo(tr.pts[4], tr.pts[5]);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      });
+    }
+
+    function makeBoxVerts(bbox) {
+      var x = bbox.x, y = bbox.y, z = bbox.z;
+      var c = [
+        [0, 0, 0], [x, 0, 0], [x, y, 0], [0, y, 0],
+        [0, 0, z], [x, 0, z], [x, y, z], [0, y, z]
+      ];
+      var tris = [
+        [0, 2, 1], [0, 3, 2],
+        [4, 5, 6], [4, 6, 7],
+        [0, 1, 5], [0, 5, 4],
+        [3, 6, 2], [3, 7, 6],
+        [0, 4, 7], [0, 7, 3],
+        [1, 2, 6], [1, 6, 5]
+      ];
+      var arr = new Float32Array(tris.length * 9);
+      for (var i = 0; i < tris.length; i++) {
+        for (var v = 0; v < 3; v++) {
+          var p = c[tris[i][v]];
+          arr[i * 9 + v * 3] = p[0];
+          arr[i * 9 + v * 3 + 1] = p[1];
+          arr[i * 9 + v * 3 + 2] = p[2];
+        }
+      }
+      return arr;
     }
 
     function renderDxfPreview(parsed) {
@@ -650,60 +789,12 @@
     }
 
     function renderStlPreview(parsed) {
-      var b = parsed.bbox;
-      var n = parsed.triangles || 0;
-      var verts = parsed.verts;
-      var cx = b.x / 2, cy = b.y / 2, cz = b.z / 2;
-      var maxDim = Math.max(b.x, b.y, b.z, 1);
-      var stride = Math.max(1, Math.ceil(n / 20000));
-      var canvas = makeRotatingCanvas(function (ctx, rx, ry, canvas) {
-        var scale = Math.min(canvas.width, canvas.height) / maxDim * 0.82;
-        ctx.strokeStyle = 'rgba(203,205,204,0.4)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (var i = 0; i < n; i += stride) {
-          var base = i * 9;
-          var last = null;
-          for (var v = 0; v < 3; v++) {
-            var px = verts[base + v * 3] - cx;
-            var py = verts[base + v * 3 + 1] - cy;
-            var pz = verts[base + v * 3 + 2] - cz;
-            var p = project3d(px, py, pz, rx, ry, scale, canvas.width / 2, canvas.height / 2);
-            if (last) { ctx.moveTo(last[0], last[1]); ctx.lineTo(p[0], p[1]); }
-            else { ctx.moveTo(p[0], p[1]); }
-            last = p;
-          }
-          ctx.closePath();
-        }
-        ctx.stroke();
-      });
+      var canvas = buildSolidViewer(parsed.verts, parsed.triangles || 0, parsed.bbox);
       previewEl.appendChild(canvas);
     }
 
     function renderStepPreview(parsed) {
-      var b = parsed.bbox;
-      var corners = [
-        [0, 0, 0], [b.x, 0, 0], [b.x, b.y, 0], [0, b.y, 0],
-        [0, 0, b.z], [b.x, 0, b.z], [b.x, b.y, b.z], [0, b.y, b.z]
-      ];
-      var edges = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
-      var cx = b.x / 2, cy = b.y / 2, cz = b.z / 2;
-      var maxDim = Math.max(b.x, b.y, b.z, 1);
-      var canvas = makeRotatingCanvas(function (ctx, rx, ry, canvas) {
-        var scale = Math.min(canvas.width, canvas.height) / maxDim * 0.82;
-        var proj = [];
-        for (var i = 0; i < corners.length; i++) {
-          proj.push(project3d(corners[i][0] - cx, corners[i][1] - cy, corners[i][2] - cz, rx, ry, scale, canvas.width / 2, canvas.height / 2));
-        }
-        ctx.strokeStyle = '#acbec0';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        for (var e = 0; e < edges.length; e++) {
-          ctx.moveTo(proj[edges[e][0]][0], proj[edges[e][0]][1]);
-          ctx.lineTo(proj[edges[e][1]][0], proj[edges[e][1]][1]);
-        }
-        ctx.stroke();
-      });
+      var canvas = buildSolidViewer(makeBoxVerts(parsed.bbox), 12, parsed.bbox);
       previewEl.appendChild(canvas);
     }
 
@@ -711,9 +802,16 @@
       previewEl.innerHTML = '';
       previewEl.hidden = false;
       var parsed = file.parsed;
-      if (parsed.kind === 'dxf') renderDxfPreview(parsed);
-      else if (parsed.kind === 'stl') renderStlPreview(parsed);
-      else renderStepPreview(parsed);
+      if (parsed.kind === 'dxf') {
+        renderDxfPreview(parsed);
+      } else {
+        if (parsed.kind === 'stl') renderStlPreview(parsed);
+        else renderStepPreview(parsed);
+        var hint = document.createElement('span');
+        hint.className = 'calc__preview-hint';
+        hint.textContent = 'Velc, lai grieztu · ritentiņš tuvina · Shift + velc pārvieto';
+        previewEl.appendChild(hint);
+      }
     }
 
     /* ----- UI ----- */
