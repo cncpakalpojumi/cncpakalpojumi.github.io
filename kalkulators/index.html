@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CNC frēzēšanas cenu kalkulators — aprēķini tāmi tiešsaistē | CNC PAKALPOJUMI</title>
-  <meta name="description" content="Aprēķini CNC frēzēšanas cenu tiešsaistē. Izvēlies materiālu, ievadi izmērus un biezumu — uzreiz redzēsi orientējošo tāmi. Koks, plastmasa, alumīnijs.">
+  <title>CNC frēzēšanas cenu kalkulators | CNC PAKALPOJUMI</title>
+  <meta name="description" content="CNC frēzēšanas orientējošā cena tiešsaistē. Augšupielādējiet DXF, STL vai STEP failu vai ievadiet izmērus. Koks, plastmasa, alumīnijs.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="lv_LV">
   <meta property="og:site_name" content="CNC PAKALPOJUMI">
   <meta property="og:title" content="CNC frēzēšanas cenu kalkulators | CNC PAKALPOJUMI">
-  <meta property="og:description" content="Aprēķini CNC frēzēšanas orientējošo cenu tiešsaistē — koks, plastmasa, alumīnijs.">
+  <meta property="og:description" content="CNC frēzēšanas orientējošā cena tiešsaistē: koks, plastmasa, alumīnijs.">
   <meta property="og:url" content="https://cncpakalpojumi.lv/kalkulators/">
   <meta property="og:image" content="https://cncpakalpojumi.lv/images/m3-1325-iekarta.jpg">
   <link rel="canonical" href="https://cncpakalpojumi.lv/kalkulators/">
@@ -30,7 +30,7 @@
       <a class="logo" href="/">CNC<span>/</span>PAKALPOJUMI</a>
       <nav class="nav" id="galvena-navigacija" aria-label="Galvenā navigācija">
         <ul class="nav__list">
-          <li class="nav__item"><a class="nav__link" href="/#pakalpojumi">Pakalpojumi</a></li>
+          <li class="nav__item"><a class="nav__link" href="/pakalpojumi/">Pakalpojumi</a></li>
           <li class="nav__item"><a class="nav__link" href="/kalkulators/" aria-current="page">Kalkulators</a></li>
           <li class="nav__item"><a class="nav__link" href="/par-mums/">Par mums</a></li>
           <li class="nav__item"><a class="nav__link" href="/kontakti/">Kontakti</a></li>
@@ -48,7 +48,7 @@
     <section class="page-hero">
       <div class="container page-hero__inner">
         <h1 class="page-hero__title">Cenu kalkulators</h1>
-        <p class="page-hero__lead">Augšupielādē CAD failu (DXF, STL vai STEP) vai ievadi izmērus manuāli — lapa aprēķinās orientējošo tāmi tieši jūsu pārlūkā, nekur to neaugšupielādējot.</p>
+        <p class="page-hero__lead">Augšupielādējiet CAD failu (DXF, STL vai STEP) vai ievadiet izmērus manuāli. Kalkulators aprēķina orientējošo cenu Jūsu pārlūkā, un fails netiek nekur nosūtīts.</p>
       </div>
     </section>
 
@@ -93,7 +93,7 @@
                       <span class="calc__dropzone-title">Velciet failu šeit vai nospiediet, lai izvēlētos</span>
                       <span class="calc__dropzone-sub">DXF, STL vai STEP · līdz 30 MB</span>
                     </label>
-                    <span class="field__hint">Fails tiek apstrādāts tieši jūsu pārlūkā un netiek nekur nosūtīts.</span>
+                    <span class="field__hint">Failu apstrādā Jūsu pārlūks, un tas netiek nekur nosūtīts.</span>
                   </div>
 
                   <div class="field field--full calc__filecard" id="calc-filecard" hidden>
@@ -108,7 +108,7 @@
                   <div class="field field--full">
                     <label class="calc__check">
                       <input type="checkbox" id="calc-own-material" name="ownMaterial">
-                      <span>Materiāls ir mans — materiāla izmaksas izslēgt no cenas</span>
+                      <span>Materiāls ir mans – neiekļaut materiāla izmaksas cenā</span>
                     </label>
                   </div>
 
@@ -123,7 +123,7 @@
                       <option value="1000">Metri (m)</option>
                       <option value="25.4">Collas (in)</option>
                     </select>
-                    <span class="field__hint">STL un STEP failos nav ierakstītas vienības — izvēlies tās, kurās modelis izveidots (parasti mm, retāk collas). Nepareiza izvēle mainīs izmērus un cenu.</span>
+                    <span class="field__hint">STL un STEP failos vienības nav ierakstītas. Izvēlieties tās, kurās modelis izveidots (parasti mm, retāk collas). Nepareizas vienības mainīs izmērus un cenu.</span>
                   </div>
 
                   <div class="field field--full" id="calc-removal-field" hidden>
@@ -177,10 +177,10 @@
                 <li class="calc__breakdown-item"><span>Kopējais mašīnlaiks</span><strong id="calc-machine-total">—</strong></li>
                 <li class="calc__breakdown-item"><span>Griešanas gājieni</span><strong id="calc-passes">—</strong></li>
                 <li class="calc__breakdown-item"><span>Materiāla izmaksas</span><strong id="calc-material-cost">—</strong></li>
-                <li class="calc__breakdown-item"><span>Sagatavošana (setup)</span><strong id="calc-setup">—</strong></li>
+                <li class="calc__breakdown-item"><span>Iekārtas sagatavošana</span><strong id="calc-setup">—</strong></li>
               </ul>
               <div class="calc__warning" id="calc-warning" role="alert"></div>
-              <p class="calc__disclaimer">Šī ir orientējoša tāme bez PVN. Precīzu cenu apstiprināsim pēc jūsu faila un tehnisko prasību izskatīšanas.</p>
+              <p class="calc__disclaimer">Šī ir orientējoša cena bez PVN. Minimālā pasūtījuma summa ir 100 €. Precīzu cenu apstiprināsim pēc Jūsu faila un tehnisko prasību izskatīšanas.</p>
               <div class="calc__submit">
                 <button type="button" class="btn btn--ghost-light btn--block" id="calc-submit" disabled>Nosūtīt šo pieprasījumu</button>
               </div>
@@ -212,7 +212,7 @@
                     <button type="submit" class="btn btn--pill" id="calc-contact-submit">Nosūtīt pieprasījumu</button>
                     <p class="calc__contact-status" id="calc-contact-status" role="status"></p>
                   </div>
-                  <p class="calc__contact-note" id="calc-mailto-note" hidden>Lūdzu, pievienojiet failu e-pasta vēstulei — pārlūks to nevar pievienot automātiski.</p>
+                  <p class="calc__contact-note" id="calc-mailto-note" hidden>Lūdzu, pievienojiet failu e-pasta vēstulei. Pārlūks to nevar pievienot automātiski.</p>
                 </form>
               </div>
             </div>
@@ -222,7 +222,7 @@
           <div class="calc__preview" id="calc-preview" hidden>
             <div class="calc__preview-head">
               <span class="calc__preview-title">Priekšskatījums</span>
-              <span class="calc__preview-hint" id="calc-preview-hint" hidden>Velc — griež · ritentiņš — tuvina · Shift + velc — pārvieto</span>
+              <span class="calc__preview-hint" id="calc-preview-hint" hidden>Vilkt – pagriezt · ritenītis – tuvināt · Shift + vilkt – pārvietot</span>
             </div>
             <div class="calc__preview-body" id="calc-preview-body"></div>
           </div>
@@ -236,13 +236,13 @@
       <div class="site-footer__grid">
         <div class="site-footer__brand">
           <a class="logo" href="/">CNC<span>/</span>PAKALPOJUMI</a>
-          <p class="site-footer__desc">CNC frēzēšanas pakalpojumi Latvijā — koks, plastmasa un alumīnijs darba laukā 1300 × 2500&nbsp;mm.</p>
+          <p class="site-footer__desc">CNC frēzēšana kokam, plastmasai un alumīnijam darba laukā līdz 1300 × 2500&nbsp;mm. Pakalpojumu sniedz SIA Bratus.</p>
           <svg class="site-footer__leaf" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 4 13c0-4 3-7 16-9 0 13-4 16-9 16z"/><path d="M4 20c2-4 5-7 9-9"/></svg>
         </div>
         <div>
           <h2 class="site-footer__heading">Navigācija</h2>
           <ul class="site-footer__nav">
-            <li><a class="site-footer__link" href="/#pakalpojumi">Pakalpojumi</a></li>
+            <li><a class="site-footer__link" href="/pakalpojumi/">Pakalpojumi</a></li>
             <li><a class="site-footer__link" href="/kalkulators/">Kalkulators</a></li>
             <li><a class="site-footer__link" href="/par-mums/">Par mums</a></li>
             <li><a class="site-footer__link" href="/kontakti/">Kontakti</a></li>
@@ -259,6 +259,9 @@
       </div>
       <div class="site-footer__bottom">
         <p>© <span id="gads">2026</span> CNC PAKALPOJUMI. Visas tiesības aizsargātas.</p>
+        <div class="site-footer__social">
+          <a href="https://www.instagram.com/bratus_machinery/" target="_blank" rel="noopener" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+        </div>
       </div>
     </div>
   </footer>

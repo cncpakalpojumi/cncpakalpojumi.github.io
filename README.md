@@ -9,10 +9,10 @@ Paredzēta izvietošanai GitHub Pages.
 ```
 /
 ├── index.html              # Sākumlapa (one-pager ar visām sekcijām)
-├── kalkulators.html        # Padziļināta kalkulatora lapa
-├── portfolio.html          # Darbu portfolio
-├── par-mums.html           # Par uzņēmumu
-├── kontakti.html           # Kontakti un forma
+├── pakalpojumi/index.html  # Pakalpojumi, materiāli, iekārta, nosacījumi
+├── kalkulators/index.html  # Padziļināta kalkulatora lapa
+├── par-mums/index.html     # Par uzņēmumu
+├── kontakti/index.html     # Kontakti un forma
 ├── css/
 │   ├── styles.css          # Globālie stili, CSS mainīgie, reset
 │   ├── components.css      # Pogas, kartītes, formas (atkārtoti lietojami)
@@ -26,11 +26,11 @@ Paredzēta izvietošanai GitHub Pages.
 
 ## Sitemap
 
-- **/** — Sākumlapa: hero, faktu josla, materiāli, kalkulators, process, portfolio, FAQ, kontakti, footer
-- **/kalkulators.html** — Padziļināta cenu kalkulatora versija
-- **/portfolio.html** — Visi darbi
-- **/par-mums.html** — Par uzņēmumu, iekārta, spējas
-- **/kontakti.html** — Kontaktforma un informācija
+- **/** — Sākumlapa: hero, pakalpojumu kopsavilkums, faktu josla, kalkulators, process, FAQ, kontakti, footer
+- **/pakalpojumi/** — Apstrādes veidi, materiāli, iekārta, pasūtījuma nosacījumi
+- **/kalkulators/** — Padziļināta cenu kalkulatora versija
+- **/par-mums/** — Par uzņēmumu, iekārta, spējas
+- **/kontakti/** — Kontaktforma un informācija
 
 ## Vietējā palaišana
 

@@ -1,10 +1,10 @@
 /* ==========================================================================
-   CNC PAKALPOJUMI — kalkulatora skripts
+   CNC PAKALPOJUMI – kalkulatora skripts
    --------------------------------------------------------------------------
    Divi režīmi vienā failā:
-     1. Faila bāzēts kalkulators (/kalkulators/) — DXF / STL / STEP parsēšana
+     1. Faila bāzēts kalkulators (/kalkulators/) – DXF / STL / STEP parsēšana
         pārlūkā, bez backend un bez ārējām bibliotēkām.
-     2. Vienkāršais manuālais kalkulators (sākumlapa) — nemainīta loģika.
+     2. Vienkāršais manuālais kalkulators (sākumlapa) – nemainīta loģika.
    ========================================================================== */
 
 (function () {
@@ -25,7 +25,7 @@
     var CONFIG = {
       hourlyRate: 45,        // EUR/h mašīnlaiks
       setupMinutes: 20,      // sagatavošana uz pasūtījumu
-      minOrderEur: 25,       // minimālā pasūtījuma summa
+      minOrderEur: 100,      // minimālā pasūtījuma summa
       toolingRate: 0.12,     // instrumentu nodilums, % no mašīnlaika izmaksām
       marginRate: 0.10,      // uzlikums
       efficiency: 0.75,      // reālais laiks pret teorētisko
@@ -587,10 +587,10 @@
     }
 
     function confidenceFor(kind) {
-      if (kind === 'dxf') return { level: 'augsta', label: 'Augsta', note: 'Kontūras nolasītas no DXF faila — cena balstīta uz reālo griezuma garumu.' };
-      if (kind === 'stl') return { level: 'videja', label: 'Vidēja', note: 'Modelis nolasīts no STL — tilpums ir precīzs, bet instrumenta ceļš ir novērtējums.' };
+      if (kind === 'dxf') return { level: 'augsta', label: 'Augsta', note: 'Kontūras nolasītas no DXF faila – cena balstīta uz reālo griezuma garumu.' };
+      if (kind === 'stl') return { level: 'videja', label: 'Vidēja', note: 'Modelis nolasīts no STL – tilpums ir precīzs, bet instrumenta ceļš ir novērtējums.' };
       if (kind === 'step') return { level: 'zema', label: 'Zema', note: 'No STEP faila nolasām tikai gabarītus, tāpēc tāme ir aptuvena.' };
-      return { level: 'zema', label: 'Zema', note: 'Izmēri ievadīti manuāli — tāme balstīta uz aptuveniem parametriem.' };
+      return { level: 'zema', label: 'Zema', note: 'Izmēri ievadīti manuāli – tāme balstīta uz aptuveniem parametriem.' };
     }
 
     /* ----- Vizualizācija ----- */
@@ -1086,7 +1086,7 @@
       var isDxfOrNone = state.mode === 'manual' || !state.file || state.file.kind === 'dxf';
       thicknessField.hidden = !isDxfOrNone;
       if (state.mode === 'file' && state.file && state.file.kind === 'dxf') {
-        thicknessHint.textContent = 'DXF fails nesatur biezumu — norādiet materiāla biezumu.';
+        thicknessHint.textContent = 'DXF fails nesatur biezumu – norādiet materiāla biezumu.';
       } else if (state.mode === 'file' && state.file && (state.file.kind === 'stl' || state.file.kind === 'step')) {
         thicknessHint.textContent = '';
       } else {
@@ -1194,7 +1194,7 @@
       if (parsed.kind === 'dxf') {
         var thickness = parseFloat(thicknessEl.value);
         if (!isFinite(thickness) || thickness <= 0) {
-          thicknessError.textContent = 'Norādiet materiāla biezumu — DXF fails to nesatur.';
+          thicknessError.textContent = 'Norādiet materiāla biezumu – DXF fails to nesatur.';
           thicknessError.classList.add('is-visible');
           thicknessEl.setAttribute('aria-invalid', 'true');
           showEmptyState();
@@ -1204,12 +1204,12 @@
         thicknessError.classList.remove('is-visible');
         thicknessEl.setAttribute('aria-invalid', 'false');
         geom = { kind: 'dxf', lengthMm: parsed.lengthMm, contourCount: parsed.contourCount, bbox: { x: parsed.bbox.x, y: parsed.bbox.y, z: thickness } };
-        if (parsed.hasBlocks) extraWarnings.push('Failā ir bloki (INSERT), kas netiek izvērsti — kontūru garums var būt novērtēts par mazu.');
+        if (parsed.hasBlocks) extraWarnings.push('Failā ir bloki (INSERT), kas netiek izvērsti – kontūru garums var būt novērtēts par mazu.');
         if (parsed.skipped > 0) extraWarnings.push('Izlaidām ' + parsed.skipped + ' objektus (teksts, izmēri, šrafūras), kas netiek griezti.');
       } else if (parsed.kind === 'stl') {
         var sf = unitFactor();
         geom = { kind: 'stl', bbox: { x: parsed.bbox.x * sf, y: parsed.bbox.y * sf, z: parsed.bbox.z * sf }, volumeMm3: parsed.volumeMm3 * sf * sf * sf, upAreaMm2: parsed.upAreaMm2 * sf * sf };
-        if (parsed.triangles > 2000000) extraWarnings.push('Modelim ir vairāk nekā 2 miljoni trijstūru — aprēķins var aizņemt dažas sekundes.');
+        if (parsed.triangles > 2000000) extraWarnings.push('Modelim ir vairāk nekā 2 miljoni trijstūru – aprēķins var aizņemt dažas sekundes.');
       } else {
         var sf2 = unitFactor();
         geom = { kind: 'step', bbox: { x: parsed.bbox.x * sf2, y: parsed.bbox.y * sf2, z: parsed.bbox.z * sf2 } };
@@ -1312,7 +1312,7 @@
     function handleFile(file) {
       if (!file) return;
       if (file.size > 30 * 1024 * 1024) {
-        setFileError('Fails ir lielāks par 30 MB — samaziniet failu vai sazinieties ar mums.');
+        setFileError('Fails ir lielāks par 30 MB – samaziniet failu vai sazinieties ar mums.');
         return;
       }
       var kind = extOf(file.name);
@@ -1329,7 +1329,7 @@
         updateThicknessVisibility();
         recalculate();
       }).catch(function (err) {
-        setFileError(err && err.message ? err.message : 'Neizdevās apstrādāt failu — pārbaudiet, vai fails nav bojāts.');
+        setFileError(err && err.message ? err.message : 'Neizdevās apstrādāt failu – pārbaudiet, vai fails nav bojāts.');
       });
     }
 
@@ -1432,7 +1432,7 @@
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setContactError(contactEmail, 'calc-contact-email-error', 'Norādiet derīgu e-pasta adresi.'); ok = false; } else setContactError(contactEmail, 'calc-contact-email-error', '');
       if (!ok) return;
 
-      var subject = 'Cenu pieprasījums — ' + (state.file ? state.file.name : 'manuāla tāme');
+      var subject = 'Cenu pieprasījums – ' + (state.file ? state.file.name : 'manuāla tāme');
       var body = lastSummary + '\n\nVārds: ' + name + '\nE-pasts: ' + email +
         (contactPhone.value.trim() ? '\nTālrunis: ' + contactPhone.value.trim() : '') +
         (contactNotes.value.trim() ? '\n\nPiezīmes:\n' + contactNotes.value.trim() : '');
@@ -1451,7 +1451,7 @@
             if (res.ok) { contactStatus.textContent = 'Pieprasījums nosūtīts.'; }
             else { throw new Error(); }
           })
-          .catch(function () { contactStatus.textContent = 'Neizdevās nosūtīt — mēģiniet vēlreiz vai rakstiet uz ' + CONFIG.contactEmail + '.'; });
+          .catch(function () { contactStatus.textContent = 'Neizdevās nosūtīt – mēģiniet vēlreiz vai rakstiet uz ' + CONFIG.contactEmail + '.'; });
       } else {
         mailtoNote.hidden = false;
         window.location.href = 'mailto:' + CONFIG.contactEmail + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
@@ -1474,7 +1474,7 @@
   }
 
   /* ======================================================================
-     VECĀ MANUĀLĀ LOĢIKA (SĀKUMLAPA) — nemainīta uzvedība
+     VECĀ MANUĀLĀ LOĢIKA (SĀKUMLAPA) – nemainīta uzvedība
      ====================================================================== */
   function initLegacyCalculator() {
     var form = document.getElementById('cenu-kalkulators');
@@ -1492,7 +1492,7 @@
       relief3d: { label: '3D reljefs / gravējums', multiplier: 2.2 }
     };
     var SETUP_HOURS = 0.25;
-    var MIN_PRICE = 15;
+    var MIN_PRICE = 100;
     var RANGE_LOW = 0.9;
     var RANGE_HIGH = 1.15;
 
@@ -1512,7 +1512,7 @@
       if (!isFinite(length) || length <= 0) errors.push({ field: 'length', message: 'Norādiet derīgu garumu (mm).' });
       if (!isFinite(width) || width <= 0) errors.push({ field: 'width', message: 'Norādiet derīgu platumu (mm).' });
       if (isFinite(length) && isFinite(width) && length > 0 && width > 0 && !isWithinWorkArea(length, width)) {
-        errors.push({ field: 'size', message: 'Pārsniedz mūsu iekārtas darba lauku (1300 × 2500 mm) — sazinieties, lai apspriestu detaļas sadalīšanu vairākos elementos.' });
+        errors.push({ field: 'size', message: 'Pārsniedz mūsu iekārtas darba lauku (1300 × 2500 mm) – sazinieties, lai apspriestu detaļas sadalīšanu vairākos elementos.' });
       }
       var quantity = Number(input.quantity);
       if (!isFinite(quantity) || quantity < 1) errors.push({ field: 'quantity', message: 'Daudzumam jābūt vismaz 1.' });

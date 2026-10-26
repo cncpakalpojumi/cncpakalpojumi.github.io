@@ -16,16 +16,19 @@ CNC frēzēšanas pakalpojumi Latvijā: ar vienu 3 asu frēzi (Wattsan M3-1325, 
 
 ## Positioning
 
-Ātra tāme (24 stundu laikā) un B2B likmes lielākiem apjomiem; tiešā ražošana bez starpniekiem ar pilnu kontroli pār kvalitāti un caurspīdīgu cenu politiku (kalkulators rāda orientējošo cenu uzreiz).
+Ātra tāme (nākamajā darba dienā) un B2B likmes lielākiem apjomiem; tiešā ražošana bez starpniekiem ar pilnu kontroli pār kvalitāti un caurspīdīgu cenu politiku (kalkulators rāda orientējošo cenu uzreiz).
 
 ## Operating Context
 
 - Viena iekārta: Wattsan M3-1325, 3 asis, darba lauks 1300 × 2500 mm.
 - Materiāli: koks / MDF / saplāksnis; plastmasa / akrils / kompozīti; alumīnijs / mīkstie metāli.
 - Pakalpojumi: 2D kontūrgriešana, 3D reljefs / gravējums, sērijveida ražošana.
-- Pieņemamie failu formāti: DXF, DWG, AI, PDF.
+- Pieņemamie failu formāti: DXF, DWG, AI, EPS, PDF, STL, STEP. Faila sagatavošana pēc skices – par papildu maksu.
 - Darba process: atsūti failu → saņem tāmi → apstiprini pasūtījumu → izgatavošana un piegāde.
-- Darba laiks P–P 8:00–17:00; kontaktpunkts Ķekavā, Pliederu iela 22.
+- Darba laiks P–P 8:00–17:00; kontaktpunkts Ķekavā, Pliederu iela 22 (izņemšana uz vietas; piegāde pēc vienošanās).
+- Pakalpojumu sniedz SIA Bratus; Instagram @bratus_machinery.
+- Minimālā pasūtījuma summa 100 €; cenas pēc pieprasījuma, kalkulators – orientējošs.
+- Iekārtas pozicionēšanas precizitāte 0,05 mm (Wattsan tehniskie dati).
 
 ## Capabilities and Constraints
 

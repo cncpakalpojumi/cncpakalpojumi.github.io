@@ -100,6 +100,7 @@ ul.hero__facts { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space
 
 /* ---------- Servisu režģis ---------- */
 .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
+.services-grid--2 { grid-template-columns: repeat(2, 1fr); }
 .service-card {
   padding: var(--space-6);
   background: var(--bg-card);
@@ -118,6 +119,12 @@ ul.hero__facts { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space
 }
 .service-card h3 { font-size: 1.3rem; }
 .service-card p { margin-top: var(--space-3); font-size: 0.95rem; color: var(--muted); }
+.service-card--link { display: block; color: inherit; text-decoration: none; }
+.service-card--link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.service-card__note { margin-top: var(--space-4); font-size: 0.85rem; color: var(--accent-deep); }
+.section-actions { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-6); }
+.section-note { margin-top: var(--space-5); color: var(--muted); max-width: 46rem; }
+.hero__note { margin-top: var(--space-5); font-size: 0.8rem; color: rgba(203, 205, 204, 0.55); max-width: 40rem; }
 
 /* ---------- Statistikas josla (tumša) ---------- */
 .stats {
@@ -288,7 +295,7 @@ ul.hero__facts { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space
 }
 
 @media (max-width: 40em) {
-  .services-grid { grid-template-columns: 1fr; }
+  .services-grid, .services-grid--2 { grid-template-columns: 1fr; }
   .stats__grid { grid-template-columns: 1fr; }
   .calc__fields { grid-template-columns: 1fr; }
   .process-grid { grid-template-columns: 1fr; }
@@ -318,3 +325,4 @@ ul.hero__facts { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space
 @media (max-width: 40em) {
   .portfolio-grid { grid-template-columns: 1fr; }
 }
+.contact-info__note { margin-top: var(--space-4); font-size: 0.9rem; color: var(--muted); }
