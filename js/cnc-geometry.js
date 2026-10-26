@@ -238,6 +238,70 @@ export function parseDxf(text) {
 }
 
 /* ======================================================================
+   DXF kontūras → slēgtas cilpas ar ligzdošanas dziļumu
+   (pāra dziļums – materiāls, nepāra – caurums). Vizualizācijai.
+   ====================================================================== */
+export function dxfLoops(paths, tol = 0.1) {
+  const same = (a, b) => Math.abs(a[0] - b[0]) <= tol && Math.abs(a[1] - b[1]) <= tol;
+  const loops = [];
+  const open = [];
+  for (const p of paths) {
+    if (p.pts.length < 2) continue;
+    if (p.closed || (p.pts.length > 2 && same(p.pts[0], p.pts[p.pts.length - 1]))) loops.push(p.pts.slice());
+    else open.push(p.pts.slice());
+  }
+  // Atvērtos posmus (LINE, ARC) savieno ķēdēs pēc galapunktiem
+  while (open.length) {
+    let chain = open.pop();
+    let grown = true;
+    while (grown && !same(chain[0], chain[chain.length - 1])) {
+      grown = false;
+      const end = chain[chain.length - 1];
+      for (let i = 0; i < open.length; i++) {
+        const s = open[i];
+        if (same(end, s[0])) { chain = chain.concat(s.slice(1)); }
+        else if (same(end, s[s.length - 1])) { chain = chain.concat(s.slice(0, -1).reverse()); }
+        else continue;
+        open.splice(i, 1);
+        grown = true;
+        break;
+      }
+    }
+    if (chain.length > 3 && same(chain[0], chain[chain.length - 1])) loops.push(chain.slice(0, -1));
+  }
+
+  const area = (pts) => {
+    let a = 0;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) a += (pts[j][0] + pts[i][0]) * (pts[j][1] - pts[i][1]);
+    return a / 2;
+  };
+  const inside = (x, y, pts) => {
+    let c = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  };
+  const items = loops
+    .map((pts) => ({ pts, area: Math.abs(area(pts)) }))
+    .filter((l) => l.area > 0.01)
+    .sort((a, b) => b.area - a.area);
+  items.forEach((l, i) => {
+    const p = l.pts[0];
+    l.parent = -1;
+    l.depth = 0;
+    for (let k = i - 1; k >= 0; k--) {
+      if (inside(p[0], p[1], items[k].pts)) {
+        if (l.parent === -1) l.parent = k;
+        l.depth++;
+      }
+    }
+  });
+  return items;
+}
+
+/* ======================================================================
    Trijstūru tīkls (STL / OBJ / STEP)
    tris: Float32Array [x1,y1,z1, x2,y2,z2, x3,y3,z3, ...]
    ====================================================================== */

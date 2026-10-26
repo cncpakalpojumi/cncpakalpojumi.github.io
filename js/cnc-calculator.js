@@ -3,7 +3,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { parseDxf, orientTriangles, thinnestAxis, analyzeMesh, readStepTriangles } from './cnc-geometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+import { getPartMaterials, texturedGeometry } from './cnc-textures.js';
+import { parseDxf, dxfLoops, orientTriangles, thinnestAxis, analyzeMesh, readStepTriangles } from './cnc-geometry.js';
 import { MACHINE, PRICING, GROUPS, MATERIALS, DEFAULT_MATERIAL, DEFAULT_THICKNESS } from './cnc-materials.js';
 
 /* ======================================================================
@@ -138,7 +141,13 @@ camera.position.copy(HOME_DIR).multiplyScalar(200);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
 viewerEl.appendChild(renderer.domElement);
+
+// Telpas apgaismojums atspīdumiem uz metāla un akrila
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -146,23 +155,21 @@ controls.dampingFactor = 0.08;
 controls.screenSpacePanning = true;
 controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-const key = new THREE.DirectionalLight(0xffffff, 1.6);
+scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+const key = new THREE.DirectionalLight(0xffffff, 1.4);
 key.position.set(1, -1.2, 2);
 scene.add(key);
-const fill = new THREE.DirectionalLight(0xffffff, 0.45);
+const fill = new THREE.DirectionalLight(0xffffff, 0.3);
 fill.position.set(-1, 1, -0.5);
 scene.add(fill);
 
 const ACCENT = 0xb64a1b;
 const INK = 0x182120;
-const partMaterial = new THREE.MeshStandardMaterial({ color: 0xc9a27a, roughness: 0.7, metalness: 0.05, flatShading: true, side: THREE.DoubleSide });
-const edgeMaterial = new THREE.LineBasicMaterial({ color: INK });
+const edgeMaterial = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.18 });
 const contourMaterial = new THREE.LineBasicMaterial({ color: ACCENT });
-const stockMaterial = new THREE.MeshBasicMaterial({ color: 0x8f9896, transparent: true, opacity: 0.1, depthWrite: false });
-const stockEdgeMaterial = new THREE.LineBasicMaterial({ color: 0x6f7876, transparent: true, opacity: 0.7 });
+const stockMaterial = new THREE.MeshBasicMaterial({ color: 0x8f9896, transparent: true, opacity: 0.04, depthWrite: false });
+const stockEdgeMaterial = new THREE.LineBasicMaterial({ color: 0x6f7876, transparent: true, opacity: 0.45 });
 
-const MATERIAL_TINT = { wood: 0xc9a27a, mdf: 0xb89470, plywood: 0xd8b98c, acrylic: 0xbfd9e0, pvc: 0xf1f1ee, acp: 0xc8ccd0, hdpe: 0xeeeeea, aluminum: 0xb7bcc0 };
 
 let modelGroup = null;
 
@@ -192,37 +199,56 @@ function disposeGroup(g) {
   g.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
 }
 
+// DXF cilpas → THREE.Shape (pāra dziļums – materiāls, nepāra – caurums)
+function dxfShapes(geo) {
+  if (!geo.loops) geo.loops = dxfLoops(geo.paths);
+  const loops = geo.loops;
+  const shapes = new Map();
+  loops.forEach((l, i) => {
+    if (l.depth % 2 === 0) shapes.set(i, new THREE.Shape(l.pts.map((p) => new THREE.Vector2(p[0], p[1]))));
+  });
+  loops.forEach((l) => {
+    if (l.depth % 2 === 1 && shapes.has(l.parent)) {
+      shapes.get(l.parent).holes.push(new THREE.Path(l.pts.map((p) => new THREE.Vector2(p[0], p[1]))));
+    }
+  });
+  return Array.from(shapes.values());
+}
+
 function buildPartObject(part) {
   const group = new THREE.Group();
   const t = part.thickness;
   const geo = part.geo;
   const mat = findMaterial(part.materialId);
-  partMaterial.color.setHex(MATERIAL_TINT[mat.group] || 0xc9a27a);
+  const materials = getPartMaterials(mat.id, mat.group, t);
 
+  let solid = null;
   if (part.kind === 'mesh') {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(part.tris, 3));
-    g.computeVertexNormals();
-    const mesh = new THREE.Mesh(g, partMaterial);
-    group.add(mesh);
-    if (geo.triangleCount < 150000) group.add(new THREE.LineSegments(new THREE.EdgesGeometry(g, 25), edgeMaterial));
+    solid = texturedGeometry(g, geo.bbox.minZ, Math.max(geo.sizeZ, 0.1));
   } else if (part.kind === 'dxf') {
-    for (const p of geo.paths) {
-      const pts = p.pts.map((q) => new THREE.Vector3(q[0], q[1], t));
-      if (p.closed && pts.length > 2) pts.push(pts[0].clone());
-      const lg = new THREE.BufferGeometry().setFromPoints(pts);
-      group.add(new THREE.Line(lg, contourMaterial));
-      const lg0 = new THREE.BufferGeometry().setFromPoints(pts.map((v) => new THREE.Vector3(v.x, v.y, 0)));
-      group.add(new THREE.Line(lg0, edgeMaterial));
+    const shapes = dxfShapes(geo);
+    if (shapes.length) {
+      solid = texturedGeometry(new THREE.ExtrudeGeometry(shapes, { depth: t, bevelEnabled: false }), 0, t);
+    } else {
+      // Nav slēgtu kontūru – rāda līnijas
+      for (const p of geo.paths) {
+        const pts = p.pts.map((q) => new THREE.Vector3(q[0], q[1], t));
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), contourMaterial));
+      }
     }
   } else {
     const box = new THREE.BoxGeometry(geo.sizeX, geo.sizeY, t);
-    const mesh = new THREE.Mesh(box, partMaterial);
-    mesh.position.set(geo.sizeX / 2, geo.sizeY / 2, t / 2);
-    group.add(mesh);
-    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(box), edgeMaterial);
-    edges.position.copy(mesh.position);
-    group.add(edges);
+    box.translate(geo.sizeX / 2, geo.sizeY / 2, t / 2);
+    solid = texturedGeometry(box, 0, t);
+  }
+
+  if (solid) {
+    toCreasedNormals(solid, THREE.MathUtils.degToRad(35));
+    group.add(new THREE.Mesh(solid, materials));
+    const triCount = solid.attributes.position.count / 3;
+    if (triCount < 150000 && mat.group !== 'acrylic') group.add(new THREE.LineSegments(new THREE.EdgesGeometry(solid, 30), edgeMaterial));
   }
 
   // Sagatave (loksnes gabals) ar 5 mm rezervi katrā pusē
@@ -267,7 +293,7 @@ function showModel(part, refit) {
   scene.add(modelGroup);
   if (refit) {
     const r = Math.max(part.geo.sizeX, part.geo.sizeY, part.thickness) * 0.75;
-    const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.1;
+    const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.9;
     controls.target.set(0, 0, 0);
     camera.position.copy(HOME_DIR).multiplyScalar(dist);
     camera.near = dist / 100; camera.far = dist * 100;
