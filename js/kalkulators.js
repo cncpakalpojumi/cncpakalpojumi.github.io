@@ -1629,9 +1629,12 @@
 
     function recalculate() {
       var input = readInputs();
-      var errors = validate(input);
+      // Tukšus laukus neatzīmē kā kļūdu – lietotājs tos vēl nav aizpildījis
+      var isEmpty = function (key) { return fieldElements[key] && fieldElements[key].value === ''; };
+      var errors = validate(input).filter(function (err) { return !isEmpty(err.field); });
       if (errors.length) { renderErrors(errors); showEmptyState(); return; }
       renderErrors([]);
+      if (['length', 'width', 'thickness', 'quantity'].some(isEmpty)) { showEmptyState(); return; }
       var result = calculateEstimate(input);
       if (hintEl) hintEl.hidden = true;
       if (breakdownEl) breakdownEl.hidden = false;

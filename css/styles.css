@@ -1,22 +1,32 @@
 /* ==========================================================================
    CNC PAKALPOJUMI — dizaina sistēma
-   Palette: bg #cbcdcc · ink #182120 · accent #b64a1b · #acbec0 · #8e8e8e
+   Palette: bg #f4f3ef · kartītes #ffffff · ink #182120 · accent #b64a1b
    ========================================================================== */
 
 :root {
-  --bg: #cbcdcc;
-  --bg-soft: #acbec0;
-  --bg-card: #cbcdcc;
+  /* Gaišās virsmas */
+  --bg: #f4f3ef;            /* lapas fons – silti gaišs */
+  --bg-soft: #e8e5de;       /* izceltas sekcijas */
+  --bg-card: #ffffff;       /* kartītes, formas */
+  --text: #182120;          /* pamatteksts (15,9:1 uz --bg) */
+  --muted: #545e5c;         /* sekundārais teksts (6,1:1 uz --bg) */
+  --line: rgba(24, 33, 32, 0.13);
+
+  /* Tumšās virsmas */
   --ink: #182120;
-  --ink-soft: #182120;
-  --text: #182120;
-  --muted: #8e8e8e;
-  --accent: #b64a1b;
-  --accent-deep: #b64a1b;
+  --ink-soft: #222d2b;
+  --on-dark: #ecebe6;       /* teksts uz tumšā (14,4:1) */
+  --on-dark-rgb: 236, 235, 230;
+  --line-light: rgba(236, 235, 230, 0.18);
+
+  /* Akcents – rūsas oranžs */
+  --accent: #b64a1b;        /* pogas, apmales (5,1:1 uz balta) */
+  --accent-deep: #96390f;   /* akcenta teksts uz gaišā (7,0:1) */
   --accent-onlight: #b64a1b;
-  --accent-ink: #cbcdcc;
-  --line: rgba(24, 33, 32, 0.22);
-  --line-light: rgba(203, 205, 204, 0.22);
+  --accent-on-dark: #e6773f; /* akcenta teksts uz tumšā (5,9:1) */
+  --accent-ink: #ffffff;    /* teksts uz akcenta pogas */
+  --accent-rgb: 182, 74, 27;
+  --ok: #6fb38a;
 
   --font-display: "Zalando Sans Variable", "Zalando Sans", system-ui, sans-serif;
   --font-sans: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -79,20 +89,20 @@ h3 { font-size: var(--fs-h3); }
 p { max-width: 62ch; }
 
 .gold { color: var(--accent-onlight); font-style: italic; }
-.hero .gold, .section--dark .gold, .contact-cta .gold { color: var(--accent); }
+.hero .gold, .section--dark .gold, .contact-cta .gold, .page-hero .gold, .calc__result .gold { color: var(--accent-on-dark); }
 .text-muted { color: var(--muted); }
 
 /* — Layout — */
 .container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--space-5); }
 .section { padding-block: var(--space-8); }
-.section--dark { background: var(--ink); color: #cbcdcc; }
-.section--dark h1, .section--dark h2, .section--dark h3 { color: #cbcdcc; }
+.section--dark { background: var(--ink); color: var(--on-dark); }
+.section--dark h1, .section--dark h2, .section--dark h3 { color: var(--on-dark); }
 .section--soft { background: var(--bg-soft); }
 
 .section-head { max-width: 44rem; }
 .section-head h2 { margin-top: var(--space-3); }
 .section-head .lead { margin-top: var(--space-4); color: var(--muted); font-size: 1.05rem; }
-.section--dark .section-head .lead { color: rgba(203, 205, 204, 0.65); }
+.section--dark .section-head .lead { color: rgba(var(--on-dark-rgb), 0.65); }
 
 /* — Viļņu dalītājs — */
 .wave { display: block; width: 100%; height: clamp(3rem, 8vw, 6.5rem); overflow: hidden; line-height: 0; }
@@ -105,7 +115,7 @@ p { max-width: 62ch; }
 
 /* — Pieejamība — */
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.skip-link { position: absolute; left: 1rem; top: -100px; z-index: 200; padding: 0.7rem 1.2rem; background: var(--ink); color: #cbcdcc; transition: top 0.2s; }
+.skip-link { position: absolute; left: 1rem; top: -100px; z-index: 200; padding: 0.7rem 1.2rem; background: var(--ink); color: var(--on-dark); transition: top 0.2s; }
 .skip-link:focus { top: 1rem; }
 ::selection { background: var(--accent); color: var(--accent-ink); }
 
