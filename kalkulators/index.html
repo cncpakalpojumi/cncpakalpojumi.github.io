@@ -57,32 +57,47 @@
 
       <!-- 1. EKRĀNS: augšupielāde -->
       <div class="cc-screen cc-upload-screen is-active" id="cc-upload-screen">
-        <div class="container cc-upload">
-          <h1 class="cc-title" id="cc-title">Cenu kalkulators</h1>
-          <p class="cc-lead">Augšupielādējiet rasējumu vai 3D modeli, izvēlieties materiālu un uzreiz redzēsiet orientējošo cenu. Failu apstrādā Jūsu pārlūks, un tas netiek nekur nosūtīts.</p>
+        <div class="page-hero cc-hero">
+          <div class="container page-hero__inner">
+            <h1 class="page-hero__title" id="cc-title">Cenu kalkulators</h1>
+            <p class="page-hero__lead">Augšupielādējiet rasējumu vai 3D modeli, izvēlieties materiālu un uzreiz redzēsiet orientējošo cenu. Failu apstrādā Jūsu pārlūks, un tas netiek nekur nosūtīts.</p>
+          </div>
+        </div>
 
-          <div class="cc-dropzone" id="cc-dropzone" tabindex="0" role="button" aria-label="Augšupielādēt failu">
-            <input type="file" id="cc-file" accept=".dxf,.stl,.obj,.step,.stp" multiple hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <p class="cc-drop-title">Ievelciet failu šeit</p>
-            <p class="cc-drop-sub">vai nospiediet, lai izvēlētos · DXF, STL, OBJ, STEP · var pievienot vairākus</p>
-            <div class="cc-drop-material">
-              <label class="cc-label" for="cc-default-material">Materiāls</label>
-              <select class="cc-select" id="cc-default-material"></select>
+        <div class="container cc-upload">
+          <div class="cc-upload-main">
+            <div class="cc-dropzone" id="cc-dropzone" tabindex="0" role="button" aria-label="Augšupielādēt failu: DXF, STL, OBJ vai STEP">
+              <input type="file" id="cc-file" accept=".dxf,.stl,.obj,.step,.stp" multiple hidden>
+              <svg class="cc-dropzone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p class="cc-drop-title">Ievelciet failu šeit</p>
+              <p class="cc-drop-sub">vai <span class="cc-drop-pick">izvēlieties datorā</span></p>
+              <ul class="cc-formats" aria-label="Atbalstītie formāti">
+                <li>DXF</li><li>STL</li><li>OBJ</li><li>STEP</li>
+              </ul>
             </div>
             <p class="cc-upload-status" id="cc-upload-status" role="status" aria-live="polite"></p>
-            <button class="btn btn--pill btn--lg" id="cc-see-price" type="button" disabled>Redzēt cenu</button>
+
+            <div class="cc-upload-row">
+              <div class="cc-group cc-upload-material">
+                <label class="cc-label" for="cc-default-material">Materiāls jaunām detaļām</label>
+                <select class="cc-select" id="cc-default-material"></select>
+              </div>
+              <button class="btn btn--ghost cc-manual" id="cc-manual" type="button">Nav faila? Ievadīt izmērus</button>
+            </div>
           </div>
 
-          <button class="cc-link" id="cc-manual" type="button">Nav faila? Ievadiet izmērus →</button>
-
-          <ol class="cc-steps">
-            <li><strong>1.</strong> Augšupielādējiet failu</li>
-            <li><strong>2.</strong> Izvēlieties materiālu un biezumu</li>
-            <li><strong>3.</strong> Nosūtiet pieteikumu</li>
-          </ol>
-          <p class="cc-note">Mašīnlaiks 60 €/h · faila apstrāde 30 € par detaļu · minimālā pasūtījuma summa 100 € · cenas bez PVN. Kalkulators rāda orientējošu cenu, un precīzu cenu apstiprinām pēc faila pārbaudes.</p>
-          <p class="cc-note">DWG, AI, EPS un PDF failus kalkulators nenolasa. Tos varat pievienot pieteikumam kā saiti vai nosūtīt uz <a href="mailto:razosana@bratus.lv">razosana@bratus.lv</a>.</p>
+          <aside class="cc-upload-aside" aria-label="Kā veidojas cena">
+            <h2>Kā veidojas cena</h2>
+            <dl class="cc-rates">
+              <div><dt>Mašīnlaiks</dt><dd>60 €/h</dd></div>
+              <div><dt>Faila apstrāde</dt><dd>30 € / detaļa</dd></div>
+              <div><dt>Iekārtas sagatavošana</dt><dd>15 € / materiāls</dd></div>
+              <div><dt>Materiāls</dt><dd>pēc loksnes cenas</dd></div>
+              <div><dt>Minimālais pasūtījums</dt><dd>100 €</dd></div>
+            </dl>
+            <p class="cc-aside-note">Visas cenas bez PVN. Kalkulators rāda orientējošu cenu, un precīzu cenu apstiprinām pēc faila pārbaudes.</p>
+            <p class="cc-aside-note">DWG, AI, EPS un PDF failus kalkulators nenolasa. Tos varat pievienot pieteikumam kā saiti vai nosūtīt uz <a href="mailto:razosana@bratus.lv">razosana@bratus.lv</a>.</p>
+          </aside>
         </div>
       </div>
 
@@ -91,10 +106,10 @@
         <div class="cc-grid">
           <aside class="cc-panel cc-parts" aria-label="Detaļu saraksts">
             <div class="cc-panel-head">
-              <h2>Detaļas</h2>
+              <h2>Detaļas <span class="cc-count" id="cc-count">0</span></h2>
               <div class="cc-panel-actions">
-                <button class="cc-add" id="cc-add-part" type="button">+ Fails</button>
-                <button class="cc-add cc-add--ghost" id="cc-add-manual" type="button">+ Izmēri</button>
+                <button class="cc-add" id="cc-add-part" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Fails</button>
+                <button class="cc-add cc-add--ghost" id="cc-add-manual" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Izmēri</button>
               </div>
               <input type="file" id="cc-file-more" accept=".dxf,.stl,.obj,.step,.stp" multiple hidden>
             </div>
@@ -103,19 +118,20 @@
 
           <div class="cc-viewer" id="cc-viewer" aria-label="Detaļas priekšskatījums">
             <div class="cc-viewer-hint" id="cc-viewer-hint">Detaļa parādīsies šeit</div>
-            <p class="cc-viewer-help">Kreisā poga – pagriezt · labā – pārvietot · ritenītis – tuvināt</p>
+            <p class="cc-dims" id="cc-dims"></p>
+            <p class="cc-viewer-help">Vilkt – pagriezt · labā poga – pārvietot · ritenītis – tuvināt</p>
           </div>
 
           <aside class="cc-panel cc-controls" id="cc-controls" aria-label="Detaļas iestatījumi"></aside>
         </div>
 
         <div class="cc-bar">
-          <button class="btn btn--ghost" id="cc-back" type="button">← Atpakaļ</button>
+          <button class="cc-back" id="cc-back" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Atpakaļ</button>
+          <dl class="cc-breakdown" id="cc-breakdown"></dl>
           <div class="cc-bar-right">
             <div class="cc-total">
-              <span>Kopā · bez PVN · orientējoši</span>
+              <span>Kopā bez PVN</span>
               <strong id="cc-total">0,00 €</strong>
-              <small id="cc-total-note"></small>
             </div>
             <button class="btn btn--pill btn--lg" id="cc-order-btn" type="button" disabled>Nosūtīt pieteikumu</button>
           </div>
@@ -126,7 +142,7 @@
     <!-- PIETEIKUMA LOGS -->
     <div class="cc-modal-overlay" id="cc-order-modal" hidden>
       <div class="cc-modal" role="dialog" aria-modal="true" aria-labelledby="cc-order-title">
-        <button class="cc-modal-close" id="cc-order-close" type="button" aria-label="Aizvērt">×</button>
+        <button class="cc-modal-close" id="cc-order-close" type="button" aria-label="Aizvērt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
         <h2 id="cc-order-title">Nosūtīt pieteikumu</h2>
         <p class="cc-modal-sub">Pārbaudīsim Jūsu failus un nākamajā darba dienā atbildēsim ar precīzu cenu un izpildes termiņu.</p>
         <div class="cc-order-summary" id="cc-order-summary"></div>

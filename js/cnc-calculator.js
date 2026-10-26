@@ -106,7 +106,6 @@ const dropzone = $('cc-dropzone');
 const fileInput = $('cc-file');
 const fileInputMore = $('cc-file-more');
 const uploadStatus = $('cc-upload-status');
-const seePriceBtn = $('cc-see-price');
 const manualBtn = $('cc-manual');
 const defaultMaterialSel = $('cc-default-material');
 const backBtn = $('cc-back');
@@ -117,7 +116,9 @@ const viewerEl = $('cc-viewer');
 const hintEl = $('cc-viewer-hint');
 const controlsEl = $('cc-controls');
 const totalEl = $('cc-total');
-const totalNoteEl = $('cc-total-note');
+const breakdownEl = $('cc-breakdown');
+const countEl = $('cc-count');
+const dimsEl = $('cc-dims');
 const orderBtn = $('cc-order-btn');
 const orderModal = $('cc-order-modal');
 const orderClose = $('cc-order-close');
@@ -158,8 +159,8 @@ const INK = 0x182120;
 const partMaterial = new THREE.MeshStandardMaterial({ color: 0xc9a27a, roughness: 0.7, metalness: 0.05, flatShading: true, side: THREE.DoubleSide });
 const edgeMaterial = new THREE.LineBasicMaterial({ color: INK });
 const contourMaterial = new THREE.LineBasicMaterial({ color: ACCENT });
-const stockMaterial = new THREE.MeshBasicMaterial({ color: 0x9aa3a1, transparent: true, opacity: 0.12, depthWrite: false });
-const stockEdgeMaterial = new THREE.LineBasicMaterial({ color: 0x9aa3a1, transparent: true, opacity: 0.6 });
+const stockMaterial = new THREE.MeshBasicMaterial({ color: 0x8f9896, transparent: true, opacity: 0.1, depthWrite: false });
+const stockEdgeMaterial = new THREE.LineBasicMaterial({ color: 0x6f7876, transparent: true, opacity: 0.7 });
 
 const MATERIAL_TINT = { wood: 0xc9a27a, mdf: 0xb89470, plywood: 0xd8b98c, acrylic: 0xbfd9e0, pvc: 0xf1f1ee, acp: 0xc8ccd0, hdpe: 0xeeeeea, aluminum: 0xb7bcc0 };
 
@@ -238,6 +239,19 @@ function buildPartObject(part) {
   stockEdges.position.copy(stock.position);
   group.add(stockEdges);
 
+  // Galda režģis zem sagataves: 10 mm šūnas, 100 mm galvenās līnijas
+  const gridSize = Math.ceil(Math.max(sx, sy) * 1.6 / 100) * 100;
+  const fine = new THREE.GridHelper(gridSize, gridSize / 10, 0xd9d6cf, 0xe6e3dc);
+  const major = new THREE.GridHelper(gridSize, gridSize / 100, 0xb9b5ac, 0xb9b5ac);
+  [fine, major].forEach((g, i) => {
+    g.rotation.x = Math.PI / 2;
+    g.position.set(minX + geo.sizeX / 2, minY + geo.sizeY / 2, minZ - 0.05 - i * 0.01);
+    g.material.transparent = true;
+    g.material.opacity = i ? 0.55 : 0.8;
+    g.material.depthWrite = false;
+    group.add(g);
+  });
+
   // Centrē ap 0
   const c = new THREE.Vector3(minX + geo.sizeX / 2, minY + geo.sizeY / 2, minZ + t / 2);
   group.children.forEach((o) => o.position.sub(c));
@@ -246,8 +260,9 @@ function buildPartObject(part) {
 
 function showModel(part, refit) {
   if (modelGroup) { scene.remove(modelGroup); disposeGroup(modelGroup); modelGroup = null; }
-  if (!part) { hintEl.hidden = false; return; }
+  if (!part) { hintEl.hidden = false; dimsEl.textContent = ''; return; }
   hintEl.hidden = true;
+  dimsEl.textContent = fmtDims(part);
   modelGroup = buildPartObject(part);
   scene.add(modelGroup);
   if (refit) {
@@ -328,6 +343,10 @@ function renderViewCube() {
 let parts = [];
 let activeId = null;
 let seq = 0;
+
+const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>';
+const ICON_MINUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+const ICON_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 
 const ACCEPT = ['dxf', 'stl', 'obj', 'step', 'stp'];
 const extOf = (n) => (n.split('.').pop() || '').toLowerCase();
@@ -421,7 +440,9 @@ async function addFile(file) {
 }
 
 async function loadFiles(list) {
+  const before = parts.length;
   for (const f of Array.from(list || [])) await addFile(f);
+  if (parts.length > before && uploadScreen.classList.contains('is-active')) showWorkspace();
 }
 
 function addManualPart() {
@@ -470,8 +491,10 @@ function setActive(id, refit) {
 }
 
 function updateUploadStatus() {
-  seePriceBtn.disabled = !parts.length;
-  if (parts.length) setUploadStatus('Pievienotas detaļas: ' + parts.map((p) => p.name).join(', '));
+  countEl.textContent = parts.length;
+  if (parts.length && !uploadStatus.classList.contains('is-error')) {
+    setUploadStatus('Pievienotas detaļas: ' + parts.map((p) => p.name).join(', '));
+  }
 }
 
 /* ======================================================================
@@ -498,14 +521,16 @@ function renderPartsList() {
     const e = estimatePart(p);
     const li = document.createElement('li');
     li.className = 'cc-part' + (p.id === activeId ? ' is-active' : '');
+    const type = p.kind === 'manual' ? 'IZM' : p.ext.toUpperCase().replace('STP', 'STEP');
     li.innerHTML =
-      '<button type="button" class="cc-part-btn">' +
-        '<span class="cc-part-name">' + escapeHtml(p.name) + '</span>' +
+      '<button type="button" class="cc-part-btn"' + (p.id === activeId ? ' aria-current="true"' : '') + '>' +
+        '<span class="cc-part-top"><span class="cc-tag">' + type + '</span><span class="cc-part-name">' + escapeHtml(p.name) + '</span></span>' +
         '<span class="cc-part-meta">' + fmtDims(p) + '</span>' +
-        '<span class="cc-part-meta">' + escapeHtml(e.mat.label) + ' · ' + p.quantity + ' gab.</span>' +
-        (partWarnings(p).length ? '<span class="cc-part-warn">Skatīt brīdinājumu</span>' : '') +
+        '<span class="cc-part-meta">' + escapeHtml(e.mat.label) + '</span>' +
+        '<span class="cc-part-bottom"><span>' + p.quantity + ' gab.</span><strong>' + fmtEur(e.total) + '</strong></span>' +
+        (partWarnings(p).length ? '<span class="cc-part-warn">Jāpārbauda</span>' : '') +
       '</button>' +
-      '<button type="button" class="cc-part-remove" aria-label="Noņemt detaļu ' + escapeHtml(p.name) + '">×</button>';
+      '<button type="button" class="cc-part-remove" aria-label="Noņemt detaļu ' + escapeHtml(p.name) + '">' + ICON_X + '</button>';
     li.querySelector('.cc-part-btn').addEventListener('click', () => setActive(p.id, true));
     li.querySelector('.cc-part-remove').addEventListener('click', () => removePart(p.id));
     partsListEl.appendChild(li);
@@ -540,7 +565,8 @@ function renderControls() {
   const isManual = part.kind === 'manual';
   const kindLabel = part.kind === 'dxf' ? '2D kontūrgriešana (DXF)' : isManual ? 'Izmēri ievadīti manuāli' : (part.geo.finishAreaMm2 > 1 ? '3D frēzēšana' : '2,5D frēzēšana') + ' (' + part.ext.toUpperCase() + ')';
 
-  let html = '<p class="cc-kind">' + kindLabel + '</p>';
+  let html = '<div class="cc-controls-head"><h2 class="cc-controls-title">' + escapeHtml(part.name) + '</h2><p class="cc-controls-kind">' + kindLabel + '</p></div>' +
+    '<div class="cc-controls-body">';
 
   if (isManual) {
     html +=
@@ -560,7 +586,7 @@ function renderControls() {
     '<div class="cc-row2">' +
       '<div class="cc-group"><label class="cc-label" for="cc-thickness">Biezums</label><select class="cc-select" id="cc-thickness">' + thicknessOptions(part) + '</select></div>' +
       '<div class="cc-group"><label class="cc-label" for="cc-qty">Daudzums</label>' +
-        '<div class="cc-qty"><button type="button" id="cc-qty-minus" aria-label="Samazināt daudzumu">−</button><input id="cc-qty" type="number" min="1" max="9999" value="' + part.quantity + '"><button type="button" id="cc-qty-plus" aria-label="Palielināt daudzumu">+</button></div>' +
+        '<div class="cc-qty"><button type="button" id="cc-qty-minus" aria-label="Samazināt daudzumu">' + ICON_MINUS + '</button><input id="cc-qty" type="number" min="1" max="9999" value="' + part.quantity + '" aria-label="Daudzums"><button type="button" id="cc-qty-plus" aria-label="Palielināt daudzumu">' + ICON_PLUS + '</button></div>' +
       '</div>' +
     '</div>';
 
@@ -583,15 +609,14 @@ function renderControls() {
   const warns = partWarnings(part);
   if (warns.length) html += '<div class="cc-warn" role="alert">' + warns.map(escapeHtml).join('<br>') + '</div>';
 
-  html +=
+  html += '</div>' +
     '<div class="cc-summary">' +
-      '<div class="cc-sum-title">Šī detaļa</div>' +
       '<div class="cc-sum-row"><span>Gabarīti</span><strong>' + fmtDims(part) + '</strong></div>' +
       (part.geo.lengthMm ? '<div class="cc-sum-row"><span>Griezuma garums</span><strong>' + fmtNum(part.geo.lengthMm / 1000, 2) + ' m</strong></div>' : '') +
       '<div class="cc-sum-row"><span>Mašīnlaiks, gab.</span><strong>' + fmtMin(e.minutes) + '</strong></div>' +
       '<div class="cc-sum-row"><span>Materiāls, gab.</span><strong>' + (part.ownMaterial ? 'klienta' : fmtEur(e.materialCost)) + '</strong></div>' +
       '<div class="cc-sum-row"><span>Cena, gab.</span><strong>' + fmtEur(e.unit) + '</strong></div>' +
-      '<div class="cc-sum-row cc-sum-total"><span>× ' + part.quantity + ' gab.</span><strong>' + fmtEur(e.total) + '</strong></div>' +
+      '<div class="cc-sum-row cc-sum-total"><span>Kopā, ' + part.quantity + ' gab.</span><strong>' + fmtEur(e.total) + '</strong></div>' +
     '</div>';
 
   controlsEl.innerHTML = html;
@@ -635,12 +660,13 @@ function renderPrice() {
   const o = estimateOrder();
   totalEl.textContent = fmtEur(o.total);
   orderBtn.disabled = !parts.length;
-  if (!parts.length) { totalNoteEl.textContent = ''; return; }
-  let note = 'Detaļas ' + fmtEur(o.partsTotal) +
-    ' + sagatavošana ' + fmtEur(o.setupCost) +
-    ' + faila apstrāde ' + fmtEur(o.fileCost);
-  if (o.minApplied) note += ' · piemērota minimālā summa ' + fmtEur(PRICING.minOrder);
-  totalNoteEl.textContent = note;
+  if (!parts.length) { breakdownEl.innerHTML = ''; return; }
+  const item = (label, value) => '<div><dt>' + label + '</dt><dd>' + value + '</dd></div>';
+  breakdownEl.innerHTML =
+    item('Detaļas', fmtEur(o.partsTotal)) +
+    item('Sagatavošana', fmtEur(o.setupCost)) +
+    item('Faila apstrāde', fmtEur(o.fileCost)) +
+    (o.minApplied ? item('Līdz minimumam', '+ ' + fmtEur(PRICING.minOrder - o.subtotal)) : '');
 }
 
 /* ======================================================================
@@ -772,8 +798,7 @@ bindDrop(dropzone, fileInput);
 addPartBtn.addEventListener('click', () => fileInputMore.click());
 fileInputMore.addEventListener('change', () => { if (fileInputMore.files.length) loadFiles(fileInputMore.files).then(() => { fileInputMore.value = ''; }); });
 addManualBtn.addEventListener('click', addManualPart);
-seePriceBtn.addEventListener('click', (e) => { e.stopPropagation(); showWorkspace(); });
-manualBtn.addEventListener('click', (e) => { e.stopPropagation(); addManualPart(); showWorkspace(); });
+manualBtn.addEventListener('click', () => { addManualPart(); showWorkspace(); });
 backBtn.addEventListener('click', showUpload);
 orderBtn.addEventListener('click', openOrder);
 orderClose.addEventListener('click', closeOrder);

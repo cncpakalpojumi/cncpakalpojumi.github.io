@@ -1,19 +1,21 @@
 // js/cnc-materials.js — iekārtas parametri, likmes un materiālu katalogs
 // Visas cenas bez PVN. Materiālu cenas €/m² – Latvijas tirgus vidējās (2026. gada oktobris).
 
-// Wattsan A1-1325: darba lauks 1300 × 2500 mm, Z gājiens 200 mm, vārpsta 3 kW / 24 000 apgr./min,
-// ER20 cangas patrona, soļu motori, zobstieņa piedziņa, tukšgaita līdz 15 000 mm/min, vakuuma galds.
+// Wattsan M3-1325: darba lauks 1300 × 2500 mm, Z gājiens 300 mm, gaisa dzesēta vārpsta 4,5 kW / 18 000 apgr./min,
+// automātiska instrumentu maiņa (8 instrumenti), Leadshine 0,75 kW servomotori ar Shimpo planetārajiem reduktoriem,
+// slīpzobu zobstienis X/Y, lodskrūve Z, tukšgaita līdz 25 000 mm/min, vakuuma galds (6 zonas).
+// Wattsan lapā ir arī 7,5 kW un 60 000 mm/min – aprēķinā lietotas piesardzīgākās vērtības.
 export const MACHINE = {
   bedX: 2500,
   bedY: 1300,
-  zTravel: 200,
-  rapidFeed: 9000,      // mm/min — vidējais reālais tukšgaitas ātrums ar paātrinājumu (maks. 15 000)
-  efficiency: 0.8,      // stūri, paātrinājums, ieejas – reālais laiks ≈ teorētiskais ÷ 0,8
+  zTravel: 300,
+  rapidFeed: 15000,     // mm/min — vidējais reālais tukšgaitas ātrums ar paātrinājumu (maks. 25 000)
+  efficiency: 0.85,     // servopiedziņa: stūri un paātrinājums – reālais laiks ≈ teorētiskais ÷ 0,85
   throughCutMm: 0.5,    // griezums 0,5 mm dziļāk par materiālu
   leadInMm: 8,          // ieeja/izeja katrai kontūrai
   retractMm: 10,        // Z pacelšana starp gājieniem
   handlingMin: 0.5,     // detaļas noņemšana un notīrīšana, min/gab.
-  partSpacingMm: 10     // attālums starp detaļām loksnē (5 mm katrā pusē)
+  partSpacingMm: 12     // attālums starp detaļām loksnē (8 mm frēze + rezerve)
 };
 
 export const PRICING = {
@@ -27,19 +29,21 @@ export const PRICING = {
   formIdentifier: 'manufacturing'
 };
 
-// Griešanas režīmi 6 mm frēzei (2D) un 3 mm lodveida frēzei (3D apdare) ar 3 kW vārpstu.
+// Griešanas režīmi 4,5 kW vārpstai ar automātisko instrumentu maiņu:
+// kontūras – 8 mm spirālfrēze (akrilam un alumīnijam 6 mm vienas spirāles frēze),
+// rupjā 3D frēzēšana – 12 mm plakanā frēze, 3D apdare – 6 mm lodveida frēze.
 // feed – kontūras griešana mm/min · ap – dziļums vienā gājienā mm · plunge – iegremdēšana mm/min
 // rough* – rupjā frēzēšana (noņemšanas ātrums = feed × ap × ae) · finishFeed / stepover – 3D apdare
 // reliefDepthMm – vidējais reljefa dziļums, ja izmērus ievada manuāli
 export const GROUPS = {
-  mdf:      { label: 'MDF',                     feed: 3500, ap: 6,   plunge: 1200, roughFeed: 3000, roughAp: 4,   roughAe: 3, finishFeed: 4500, stepover: 0.4, reliefDepthMm: 4 },
-  plywood:  { label: 'Saplāksnis',              feed: 3000, ap: 5,   plunge: 1000, roughFeed: 3000, roughAp: 3,   roughAe: 3, finishFeed: 4000, stepover: 0.4, reliefDepthMm: 3 },
-  wood:     { label: 'Masīvkoks',               feed: 3000, ap: 5,   plunge: 1000, roughFeed: 2800, roughAp: 3,   roughAe: 3, finishFeed: 4000, stepover: 0.4, reliefDepthMm: 4 },
-  acrylic:  { label: 'Akrils (PMMA)',           feed: 2000, ap: 3,   plunge: 500,  roughFeed: 2000, roughAp: 2,   roughAe: 3, finishFeed: 3000, stepover: 0.3, reliefDepthMm: 2 },
-  pvc:      { label: 'PVC putuplasts',          feed: 4000, ap: 5,   plunge: 1500, roughFeed: 4000, roughAp: 4,   roughAe: 3, finishFeed: 5000, stepover: 0.4, reliefDepthMm: 3 },
-  hdpe:     { label: 'Polietilēns (HDPE)',      feed: 2500, ap: 4,   plunge: 800,  roughFeed: 2500, roughAp: 3,   roughAe: 3, finishFeed: 3000, stepover: 0.3, reliefDepthMm: 3 },
-  acp:      { label: 'Alumīnija kompozīts',     feed: 3000, ap: 3.5, plunge: 1000, roughFeed: 2500, roughAp: 2,   roughAe: 3, finishFeed: 3000, stepover: 0.3, reliefDepthMm: 1 },
-  aluminum: { label: 'Alumīnijs',               feed: 900,  ap: 0.5, plunge: 200,  roughFeed: 900,  roughAp: 0.5, roughAe: 2, finishFeed: 1200, stepover: 0.2, reliefDepthMm: 1 }
+  mdf:      { label: 'MDF',                     feed: 5000, ap: 8,   plunge: 1500, roughFeed: 4000, roughAp: 5,   roughAe: 6, finishFeed: 6000, stepover: 0.5,  reliefDepthMm: 4 },
+  plywood:  { label: 'Saplāksnis',              feed: 4500, ap: 7,   plunge: 1500, roughFeed: 4000, roughAp: 4,   roughAe: 6, finishFeed: 5500, stepover: 0.5,  reliefDepthMm: 3 },
+  wood:     { label: 'Masīvkoks',               feed: 4500, ap: 7,   plunge: 1500, roughFeed: 3500, roughAp: 4,   roughAe: 6, finishFeed: 5500, stepover: 0.5,  reliefDepthMm: 4 },
+  acrylic:  { label: 'Akrils (PMMA)',           feed: 3000, ap: 4,   plunge: 800,  roughFeed: 3000, roughAp: 3,   roughAe: 4, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 2 },
+  pvc:      { label: 'PVC putuplasts',          feed: 6000, ap: 8,   plunge: 2000, roughFeed: 6000, roughAp: 6,   roughAe: 6, finishFeed: 7000, stepover: 0.5,  reliefDepthMm: 3 },
+  hdpe:     { label: 'Polietilēns (HDPE)',      feed: 3500, ap: 5,   plunge: 1000, roughFeed: 3500, roughAp: 4,   roughAe: 5, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 3 },
+  acp:      { label: 'Alumīnija kompozīts',     feed: 4500, ap: 3.5, plunge: 1500, roughFeed: 3500, roughAp: 2,   roughAe: 4, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 1 },
+  aluminum: { label: 'Alumīnijs',               feed: 1500, ap: 1,   plunge: 300,  roughFeed: 1500, roughAp: 1,   roughAe: 3, finishFeed: 2000, stepover: 0.25, reliefDepthMm: 1 }
 };
 
 // sheets: [{ t: biezums mm, eurM2: cena €/m² bez PVN }]
