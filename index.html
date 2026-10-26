@@ -168,75 +168,17 @@
       <svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,64 C240,24 480,96 720,60 C960,24 1200,88 1440,48 L1440,90 L0,90 Z" style="fill:var(--bg)"/></svg>
     </div>
 
-    <!-- KALKULATORS -->
+    <!-- KALKULATORS (saite) -->
     <section class="section" id="kalkulators" aria-labelledby="kalkulators-virsraksts">
       <div class="container">
-        <div class="section-head" data-reveal>
-          <h2 id="kalkulators-virsraksts">Aprēķiniet orientējošo cenu</h2>
-          <p class="lead">Ievadiet materiālu, izmērus un daudzumu, un kalkulators uzreiz parādīs aptuveno cenu. Detalizētajā kalkulatorā varat augšupielādēt arī DXF, STL vai STEP failu. <a class="gold" href="/kalkulators/">Atvērt detalizēto kalkulatoru →</a></p>
-        </div>
-
-        <div class="calc" data-reveal>
-          <div class="calc__inner">
-            <form class="calc__form" id="cenu-kalkulators" novalidate>
-              <div class="calc__fields">
-                <div class="field field--full">
-                  <label class="label" for="calc-material">Materiāls</label>
-                  <select class="select" id="calc-material" name="material">
-                    <option value="wood">Koks / MDF / Saplāksnis</option>
-                    <option value="plastic">Plastmasa / Akrils / Kompozīti</option>
-                    <option value="aluminum">Alumīnijs / Mīkstie metāli</option>
-                  </select>
-                  <span class="field__error" id="calc-material-error"></span>
-                </div>
-                <div class="field">
-                  <label class="label" for="calc-length">Garums (mm)</label>
-                  <input class="input" type="number" id="calc-length" name="length" min="1" max="2500" step="1" inputmode="numeric" placeholder="piem., 600">
-                  <span class="field__error" id="calc-length-error"></span>
-                </div>
-                <div class="field">
-                  <label class="label" for="calc-width">Platums (mm)</label>
-                  <input class="input" type="number" id="calc-width" name="width" min="1" max="1300" step="1" inputmode="numeric" placeholder="piem., 400">
-                  <span class="field__error" id="calc-width-error"></span>
-                </div>
-                <div class="field">
-                  <label class="label" for="calc-thickness">Biezums (mm)</label>
-                  <input class="input" type="number" id="calc-thickness" name="thickness" min="0.5" max="100" step="0.5" inputmode="decimal" placeholder="piem., 18">
-                  <span class="field__error" id="calc-thickness-error"></span>
-                </div>
-                <div class="field">
-                  <label class="label" for="calc-quantity">Daudzums (gab.)</label>
-                  <input class="input" type="number" id="calc-quantity" name="quantity" min="1" max="10000" step="1" inputmode="numeric" value="1">
-                  <span class="field__error" id="calc-quantity-error"></span>
-                </div>
-                <div class="field field--full">
-                  <span class="label" id="calc-complexity-label">Apstrādes sarežģītība</span>
-                  <div class="calc__radio-group" role="radiogroup" aria-labelledby="calc-complexity-label">
-                    <label class="calc__radio"><input type="radio" name="complexity" value="simple" checked><span>Vienkārša 2D kontūrgriešana</span></label>
-                    <label class="calc__radio"><input type="radio" name="complexity" value="complex"><span>Sarežģīta forma, daudz detaļu</span></label>
-                    <label class="calc__radio"><input type="radio" name="complexity" value="relief3d"><span>3D reljefs / gravējums</span></label>
-                  </div>
-                </div>
-              </div>
-            </form>
-
-            <div class="calc__result" aria-live="polite">
-              <p class="calc__result-label">Aptuvenā cena</p>
-              <p class="calc__price" id="calc-price">—</p>
-              <p class="calc__hint" id="calc-hint">Ievadiet detaļas izmērus, lai redzētu orientējošo cenu.</p>
-              <ul class="calc__breakdown" id="calc-breakdown" hidden>
-                <li class="calc__breakdown-item"><span>Vienas detaļas cena</span><strong id="calc-unit">—</strong></li>
-                <li class="calc__breakdown-item"><span>Aptuvenais mašīnlaiks</span><strong id="calc-hours">—</strong></li>
-                <li class="calc__breakdown-item"><span>Griešanas gājieni</span><strong id="calc-passes">—</strong></li>
-              </ul>
-              <div class="calc__warning" id="calc-warning" role="alert"></div>
-              <p class="calc__disclaimer">Šī ir orientējoša cena. Minimālā pasūtījuma summa ir 100 €. Precīzu cenu apstiprināsim pēc Jūsu faila un tehnisko prasību izskatīšanas.</p>
-              <div class="calc__submit">
-                <button type="button" class="btn btn--ghost-light btn--block" id="calc-submit" disabled>Nosūtīt šo pieprasījumu</button>
-              </div>
-            </div>
+        <a class="calc-teaser" href="/kalkulators/" data-reveal>
+          <svg class="calc-teaser__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="calc-teaser__body">
+            <h2 id="kalkulators-virsraksts">Aprēķiniet cenu pēc faila</h2>
+            <span class="calc-teaser__lead">Augšupielādējiet DXF, STL, OBJ vai STEP failu, izvēlieties materiālu un biezumu, un kalkulators uzreiz parādīs orientējošo cenu.</span>
           </div>
-        </div>
+          <span class="btn btn--pill btn--lg">Atvērt kalkulatoru</span>
+        </a>
       </div>
     </section>
 
@@ -313,7 +255,7 @@
           </div>
           <div class="accordion__item">
             <h3><button class="accordion__header" type="button" aria-expanded="false" aria-controls="faq-6"><span class="accordion__title">Vai pieņemat sērijveida pasūtījumus?</span><svg class="accordion__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></h3>
-            <div class="accordion__panel" id="faq-6"><div class="accordion__panel-inner"><p class="accordion__content">Jā. Galvenokārt strādājam ar uzņēmumiem, un sērijas cenu aprēķinām pēc pieprasījuma. Minimālā pasūtījuma summa ir 100 €.</p></div></div>
+            <div class="accordion__panel" id="faq-6"><div class="accordion__panel-inner"><p class="accordion__content">Jā. Galvenokārt strādājam ar uzņēmumiem, un sērijas cenu aprēķinām pēc pieprasījuma.</p></div></div>
           </div>
         </div>
       </div>
@@ -375,6 +317,5 @@
   </footer>
 
   <script src="/js/main.js" defer></script>
-  <script src="/js/kalkulators.js" defer></script>
 </body>
 </html>

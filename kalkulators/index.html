@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CNC frēzēšanas cenu kalkulators | CNC PAKALPOJUMI</title>
-  <meta name="description" content="CNC frēzēšanas orientējošā cena tiešsaistē. Augšupielādējiet DXF, STL vai STEP failu vai ievadiet izmērus. Koks, plastmasa, alumīnijs.">
+  <meta name="description" content="CNC frēzēšanas orientējošā cena tiešsaistē. Augšupielādējiet DXF, STL, OBJ vai STEP failu, izvēlieties materiālu un biezumu. Cenas bez PVN.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="lv_LV">
   <meta property="og:site_name" content="CNC PAKALPOJUMI">
@@ -21,6 +21,14 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/kalkulators.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#saturs">Pāriet uz saturu</a>
@@ -45,190 +53,100 @@
   </header>
 
   <main id="saturs">
-    <section class="page-hero">
-      <div class="container page-hero__inner">
-        <h1 class="page-hero__title">Cenu kalkulators</h1>
-        <p class="page-hero__lead">Augšupielādējiet CAD failu (DXF, STL vai STEP) vai ievadiet izmērus manuāli. Kalkulators aprēķina orientējošo cenu Jūsu pārlūkā, un fails netiek nekur nosūtīts.</p>
-      </div>
-    </section>
+    <section class="cc" id="kalkulators" aria-labelledby="cc-title">
 
-    <section class="section">
-      <div class="container">
-        <div class="calc" data-reveal>
-          <div class="calc__inner">
+      <!-- 1. EKRĀNS: augšupielāde -->
+      <div class="cc-screen cc-upload-screen is-active" id="cc-upload-screen">
+        <div class="container cc-upload">
+          <h1 class="cc-title" id="cc-title">Cenu kalkulators</h1>
+          <p class="cc-lead">Augšupielādējiet rasējumu vai 3D modeli, izvēlieties materiālu un uzreiz redzēsiet orientējošo cenu. Failu apstrādā Jūsu pārlūks, un tas netiek nekur nosūtīts.</p>
 
-            <form class="calc__form" id="cenu-kalkulators" novalidate>
-              <div class="calc__tabs" role="tablist" aria-label="Kalkulatora režīms">
-                <button type="button" class="calc__tab is-active" id="tab-file" role="tab" aria-selected="true" aria-controls="panel-file">Augšupielādēt failu</button>
-                <button type="button" class="calc__tab" id="tab-manual" role="tab" aria-selected="false" aria-controls="panel-manual">Ievadīt izmērus</button>
-              </div>
-
-              <div class="calc__fields">
-                <div class="field">
-                  <label class="label" for="calc-material">Materiāls</label>
-                  <select class="select" id="calc-material" name="material">
-                    <option value="wood">Koks / MDF / Saplāksnis</option>
-                    <option value="plastic">Plastmasa / Akrils / Kompozīti</option>
-                    <option value="aluminum">Alumīnijs / Mīkstie metāli</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label class="label" for="calc-quantity">Daudzums (gab.)</label>
-                  <input class="input" type="number" id="calc-quantity" name="quantity" min="1" max="10000" step="1" inputmode="numeric" value="1">
-                </div>
-                <div class="field field--full" id="calc-thickness-field">
-                  <label class="label" for="calc-thickness">Biezums (mm)</label>
-                  <input class="input" type="number" id="calc-thickness" name="thickness" min="0.5" max="100" step="0.5" inputmode="decimal" placeholder="piem., 18">
-                  <span class="field__hint" id="calc-thickness-hint"></span>
-                  <span class="field__error" id="calc-thickness-error"></span>
-                </div>
-              </div>
-
-              <div class="calc__panel" id="panel-file" role="tabpanel" aria-labelledby="tab-file">
-                <div class="calc__fields">
-                  <div class="field field--full">
-                    <input type="file" id="calc-file" class="calc__file-input" accept=".dxf,.stl,.step,.stp">
-                    <label class="calc__dropzone" id="calc-dropzone" for="calc-file" tabindex="0" role="button">
-                      <svg class="calc__dropzone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                      <span class="calc__dropzone-title">Velciet failu šeit vai nospiediet, lai izvēlētos</span>
-                      <span class="calc__dropzone-sub">DXF, STL vai STEP · līdz 30 MB</span>
-                    </label>
-                    <span class="field__hint">Failu apstrādā Jūsu pārlūks, un tas netiek nekur nosūtīts.</span>
-                  </div>
-
-                  <div class="field field--full calc__filecard" id="calc-filecard" hidden>
-                    <div class="calc__filecard-info">
-                      <span class="calc__filecard-name" id="calc-file-name"></span>
-                      <span class="calc__filecard-meta" id="calc-file-meta"></span>
-                      <span class="calc__filecard-geo" id="calc-file-geo"></span>
-                    </div>
-                    <button type="button" class="calc__filecard-remove" id="calc-file-remove">Noņemt failu</button>
-                  </div>
-
-                  <div class="field field--full">
-                    <label class="calc__check">
-                      <input type="checkbox" id="calc-own-material" name="ownMaterial">
-                      <span>Materiāls ir mans – neiekļaut materiāla izmaksas cenā</span>
-                    </label>
-                  </div>
-
-                  <div class="field calc__units-field" id="calc-units-field" hidden>
-                    <label class="label calc__units-label" for="calc-units">
-                      <svg class="calc__units-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                      Faila vienības
-                    </label>
-                    <select class="select" id="calc-units">
-                      <option value="1">Milimetri (mm)</option>
-                      <option value="10">Centimetri (cm)</option>
-                      <option value="1000">Metri (m)</option>
-                      <option value="25.4">Collas (in)</option>
-                    </select>
-                    <span class="field__hint">STL un STEP failos vienības nav ierakstītas. Izvēlieties tās, kurās modelis izveidots (parasti mm, retāk collas). Nepareizas vienības mainīs izmērus un cenu.</span>
-                  </div>
-
-                  <div class="field field--full" id="calc-removal-field" hidden>
-                    <label class="label" for="calc-removal">Aptuvenais materiāla noņemšanas apjoms</label>
-                    <input type="range" id="calc-removal" min="20" max="80" step="1" value="45">
-                    <div class="calc__range-row">
-                      <span class="field__hint">Mazāk noņemšanas</span>
-                      <output class="calc__range-value" id="calc-removal-value" for="calc-removal">45 %</output>
-                      <span class="field__hint">Vairāk noņemšanas</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="calc__panel" id="panel-manual" role="tabpanel" aria-labelledby="tab-manual" hidden>
-                <div class="calc__fields">
-                  <div class="field">
-                    <label class="label" for="calc-length">Garums (mm)</label>
-                    <input class="input" type="number" id="calc-length" name="length" min="1" max="2500" step="1" inputmode="numeric" placeholder="piem., 600">
-                    <span class="field__error" id="calc-length-error"></span>
-                  </div>
-                  <div class="field">
-                    <label class="label" for="calc-width">Platums (mm)</label>
-                    <input class="input" type="number" id="calc-width" name="width" min="1" max="1300" step="1" inputmode="numeric" placeholder="piem., 400">
-                    <span class="field__error" id="calc-width-error"></span>
-                  </div>
-                  <div class="field field--full">
-                    <span class="label" id="calc-complexity-label">Apstrādes sarežģītība</span>
-                    <div class="calc__radio-group" role="radiogroup" aria-labelledby="calc-complexity-label">
-                      <label class="calc__radio"><input type="radio" name="complexity" value="simple" checked><span>Vienkārša 2D kontūrgriešana</span></label>
-                      <label class="calc__radio"><input type="radio" name="complexity" value="complex"><span>Sarežģīta forma, daudz detaļu</span></label>
-                      <label class="calc__radio"><input type="radio" name="complexity" value="relief3d"><span>3D reljefs / gravējums</span></label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </form>
-
-            <div class="calc__result" aria-live="polite">
-              <div class="calc__confidence">
-                <span class="calc__confidence-label">Tāmes ticamība</span>
-                <span class="calc__confidence-value" id="calc-confidence">—</span>
-                <p class="calc__confidence-note" id="calc-confidence-note"></p>
-              </div>
-              <p class="calc__result-label">Aptuvenā cena</p>
-              <p class="calc__price" id="calc-price">—</p>
-              <p class="calc__hint" id="calc-hint">Augšupielādējiet failu vai ievadiet izmērus, lai redzētu orientējošo tāmi.</p>
-              <ul class="calc__breakdown" id="calc-breakdown" hidden>
-                <li class="calc__breakdown-item"><span>Cena par gabalu</span><strong id="calc-unit">—</strong></li>
-                <li class="calc__breakdown-item"><span>Mašīnlaiks vienam gabalam</span><strong id="calc-machine-per-unit">—</strong></li>
-                <li class="calc__breakdown-item"><span>Kopējais mašīnlaiks</span><strong id="calc-machine-total">—</strong></li>
-                <li class="calc__breakdown-item"><span>Griešanas gājieni</span><strong id="calc-passes">—</strong></li>
-                <li class="calc__breakdown-item"><span>Materiāla izmaksas</span><strong id="calc-material-cost">—</strong></li>
-                <li class="calc__breakdown-item"><span>Iekārtas sagatavošana</span><strong id="calc-setup">—</strong></li>
-              </ul>
-              <div class="calc__warning" id="calc-warning" role="alert"></div>
-              <p class="calc__disclaimer">Šī ir orientējoša cena bez PVN. Minimālā pasūtījuma summa ir 100 €. Precīzu cenu apstiprināsim pēc Jūsu faila un tehnisko prasību izskatīšanas.</p>
-              <div class="calc__submit">
-                <button type="button" class="btn btn--ghost-light btn--block" id="calc-submit" disabled>Nosūtīt šo pieprasījumu</button>
-              </div>
-
-              <div class="calc__contact" id="calc-contact" hidden>
-                <h3 class="calc__contact-title">Nosūtīt pieprasījumu</h3>
-                <form id="calc-contact-form" novalidate>
-                  <div class="form-grid">
-                    <div class="field">
-                      <label class="label" for="calc-contact-name">Vārds *</label>
-                      <input class="input" id="calc-contact-name" type="text" autocomplete="name" required>
-                      <span class="field__error" id="calc-contact-name-error"></span>
-                    </div>
-                    <div class="field">
-                      <label class="label" for="calc-contact-email">E-pasts *</label>
-                      <input class="input" id="calc-contact-email" type="email" autocomplete="email" required>
-                      <span class="field__error" id="calc-contact-email-error"></span>
-                    </div>
-                    <div class="field">
-                      <label class="label" for="calc-contact-phone">Tālrunis</label>
-                      <input class="input" id="calc-contact-phone" type="tel" autocomplete="tel">
-                    </div>
-                    <div class="field">
-                      <label class="label" for="calc-contact-notes">Piezīmes</label>
-                      <textarea class="textarea" id="calc-contact-notes" rows="4"></textarea>
-                    </div>
-                  </div>
-                  <div class="calc__contact-actions">
-                    <button type="submit" class="btn btn--pill" id="calc-contact-submit">Nosūtīt pieprasījumu</button>
-                    <p class="calc__contact-status" id="calc-contact-status" role="status"></p>
-                  </div>
-                  <p class="calc__contact-note" id="calc-mailto-note" hidden>Lūdzu, pievienojiet failu e-pasta vēstulei. Pārlūks to nevar pievienot automātiski.</p>
-                </form>
-              </div>
+          <div class="cc-dropzone" id="cc-dropzone" tabindex="0" role="button" aria-label="Augšupielādēt failu">
+            <input type="file" id="cc-file" accept=".dxf,.stl,.obj,.step,.stp" multiple hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p class="cc-drop-title">Ievelciet failu šeit</p>
+            <p class="cc-drop-sub">vai nospiediet, lai izvēlētos · DXF, STL, OBJ, STEP · var pievienot vairākus</p>
+            <div class="cc-drop-material">
+              <label class="cc-label" for="cc-default-material">Materiāls</label>
+              <select class="cc-select" id="cc-default-material"></select>
             </div>
-
+            <p class="cc-upload-status" id="cc-upload-status" role="status" aria-live="polite"></p>
+            <button class="btn btn--pill btn--lg" id="cc-see-price" type="button" disabled>Redzēt cenu</button>
           </div>
 
-          <div class="calc__preview" id="calc-preview" hidden>
-            <div class="calc__preview-head">
-              <span class="calc__preview-title">Priekšskatījums</span>
-              <span class="calc__preview-hint" id="calc-preview-hint" hidden>Vilkt – pagriezt · ritenītis – tuvināt · Shift + vilkt – pārvietot</span>
+          <button class="cc-link" id="cc-manual" type="button">Nav faila? Ievadiet izmērus →</button>
+
+          <ol class="cc-steps">
+            <li><strong>1.</strong> Augšupielādējiet failu</li>
+            <li><strong>2.</strong> Izvēlieties materiālu un biezumu</li>
+            <li><strong>3.</strong> Nosūtiet pieteikumu</li>
+          </ol>
+          <p class="cc-note">Mašīnlaiks 60 €/h · faila apstrāde 30 € par detaļu · minimālā pasūtījuma summa 100 € · cenas bez PVN. Kalkulators rāda orientējošu cenu, un precīzu cenu apstiprinām pēc faila pārbaudes.</p>
+          <p class="cc-note">DWG, AI, EPS un PDF failus kalkulators nenolasa. Tos varat pievienot pieteikumam kā saiti vai nosūtīt uz <a href="mailto:razosana@bratus.lv">razosana@bratus.lv</a>.</p>
+        </div>
+      </div>
+
+      <!-- 2. EKRĀNS: darba vieta -->
+      <div class="cc-screen cc-workspace" id="cc-workspace-screen">
+        <div class="cc-grid">
+          <aside class="cc-panel cc-parts" aria-label="Detaļu saraksts">
+            <div class="cc-panel-head">
+              <h2>Detaļas</h2>
+              <div class="cc-panel-actions">
+                <button class="cc-add" id="cc-add-part" type="button">+ Fails</button>
+                <button class="cc-add cc-add--ghost" id="cc-add-manual" type="button">+ Izmēri</button>
+              </div>
+              <input type="file" id="cc-file-more" accept=".dxf,.stl,.obj,.step,.stp" multiple hidden>
             </div>
-            <div class="calc__preview-body" id="calc-preview-body"></div>
+            <ul class="cc-parts-list" id="cc-parts-list"></ul>
+          </aside>
+
+          <div class="cc-viewer" id="cc-viewer" aria-label="Detaļas priekšskatījums">
+            <div class="cc-viewer-hint" id="cc-viewer-hint">Detaļa parādīsies šeit</div>
+            <p class="cc-viewer-help">Kreisā poga – pagriezt · labā – pārvietot · ritenītis – tuvināt</p>
+          </div>
+
+          <aside class="cc-panel cc-controls" id="cc-controls" aria-label="Detaļas iestatījumi"></aside>
+        </div>
+
+        <div class="cc-bar">
+          <button class="btn btn--ghost" id="cc-back" type="button">← Atpakaļ</button>
+          <div class="cc-bar-right">
+            <div class="cc-total">
+              <span>Kopā · bez PVN · orientējoši</span>
+              <strong id="cc-total">0,00 €</strong>
+              <small id="cc-total-note"></small>
+            </div>
+            <button class="btn btn--pill btn--lg" id="cc-order-btn" type="button" disabled>Nosūtīt pieteikumu</button>
           </div>
         </div>
       </div>
     </section>
+
+    <!-- PIETEIKUMA LOGS -->
+    <div class="cc-modal-overlay" id="cc-order-modal" hidden>
+      <div class="cc-modal" role="dialog" aria-modal="true" aria-labelledby="cc-order-title">
+        <button class="cc-modal-close" id="cc-order-close" type="button" aria-label="Aizvērt">×</button>
+        <h2 id="cc-order-title">Nosūtīt pieteikumu</h2>
+        <p class="cc-modal-sub">Pārbaudīsim Jūsu failus un nākamajā darba dienā atbildēsim ar precīzu cenu un izpildes termiņu.</p>
+        <div class="cc-order-summary" id="cc-order-summary"></div>
+        <form id="cc-order-form" novalidate>
+          <div class="cc-row2">
+            <div class="cc-group"><label class="cc-label" for="cc-order-name">Vārds *</label><input class="cc-input" id="cc-order-name" type="text" autocomplete="name" required></div>
+            <div class="cc-group"><label class="cc-label" for="cc-order-email">E-pasts *</label><input class="cc-input" id="cc-order-email" type="email" autocomplete="email" required></div>
+          </div>
+          <div class="cc-row2">
+            <div class="cc-group"><label class="cc-label" for="cc-order-phone">Tālrunis</label><input class="cc-input" id="cc-order-phone" type="tel" autocomplete="tel"></div>
+            <div class="cc-group"><label class="cc-label" for="cc-order-company">Uzņēmums</label><input class="cc-input" id="cc-order-company" type="text" autocomplete="organization"></div>
+          </div>
+          <div class="cc-group"><label class="cc-label" for="cc-order-link">Saite uz failiem (Google Drive, Dropbox, WeTransfer)</label><input class="cc-input" id="cc-order-link" type="url" placeholder="https://"></div>
+          <p class="cc-hint">Pārlūks failus kopā ar pieteikumu nenosūta. Lūdzu, pievienojiet saiti vai atsūtiet failus uz razosana@bratus.lv.</p>
+          <div class="cc-group"><label class="cc-label" for="cc-order-message">Komentārs</label><textarea class="cc-input" id="cc-order-message" rows="3" placeholder="Piemēram, apdare, termiņš, piegāde"></textarea></div>
+          <button type="submit" class="btn btn--pill btn--lg btn--block" id="cc-order-submit">Nosūtīt pieteikumu</button>
+          <p class="cc-form-status" id="cc-order-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -267,6 +185,6 @@
   </footer>
 
   <script src="/js/main.js" defer></script>
-  <script src="/js/kalkulators.js" defer></script>
+  <script type="module" src="/js/cnc-calculator.js"></script>
 </body>
 </html>

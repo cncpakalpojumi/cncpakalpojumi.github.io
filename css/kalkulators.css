@@ -1,256 +1,174 @@
 /* ==========================================================================
-   CNC PAKALPOJUMI — kalkulatora papildu stili (failu režīms, ticamība, forma)
+   CNC PAKALPOJUMI — cenu kalkulators (/kalkulators/)
+   Izkārtojums: 1) augšupielāde · 2) darba vieta (detaļas | skats | iestatījumi)
    ========================================================================== */
 
-/* Nodrošina, ka HTML `hidden` atribūts vienmēr slēpj elementu,
-   pat ja citai klasei ir iestatīts `display`. */
-[hidden] { display: none !important; }
+.cc { background: var(--bg); }
+.cc-screen { display: none; }
+.cc-screen.is-active { display: block; }
+.cc-workspace { scroll-margin-top: 76px; }
 
-/* Režīmu slēdzis */
-.calc__tabs {
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-5);
-  border-bottom: 1px solid var(--line);
-}
-.calc__tab {
-  padding: 0.7rem 1.1rem;
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--muted);
-  border-bottom: 3px solid transparent;
-  transition: color var(--transition), border-color var(--transition);
-}
-.calc__tab:hover { color: var(--text); }
-.calc__tab.is-active {
-  color: var(--text);
-  border-bottom-color: var(--accent);
-}
+/* ---------- 1. ekrāns ---------- */
+.cc-upload { max-width: 46rem; padding-block: var(--space-7) var(--space-8); text-align: center; }
+.cc-title { font-size: var(--fs-h2); }
+.cc-lead { margin: var(--space-4) auto 0; color: var(--muted); }
 
-/* Paneļi */
-.calc__panel[hidden] { display: none; }
-
-/* Drop zone */
-.calc__file-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
-.calc__dropzone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: var(--space-6);
+.cc-dropzone {
+  margin-top: var(--space-6);
+  padding: var(--space-6) var(--space-5);
+  background: var(--bg-card);
   border: 2px dashed var(--line);
-  text-align: center;
   cursor: pointer;
   transition: border-color var(--transition), background var(--transition);
 }
-.calc__dropzone:hover,
-.calc__dropzone.is-dragover {
-  border-color: var(--accent);
-  background: rgba(var(--accent-rgb), 0.06);
-}
-.calc__dropzone-icon { width: 2.5rem; height: 2.5rem; color: var(--accent); }
-.calc__dropzone-title { font-weight: 600; color: var(--text); }
-.calc__dropzone-sub { font-size: 0.85rem; color: var(--muted); }
+.cc-dropzone:hover, .cc-dropzone:focus-visible, .cc-dropzone.is-drag { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.04); }
+.cc-dropzone > svg { width: 2.75rem; height: 2.75rem; margin: 0 auto var(--space-3); color: var(--accent); }
+.cc-drop-title { margin-inline: auto; font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
+.cc-drop-sub { margin: var(--space-2) auto 0; font-size: 0.85rem; color: var(--muted); }
+.cc-drop-material { max-width: 22rem; margin: var(--space-5) auto 0; text-align: left; cursor: default; }
+.cc-upload-status { min-height: 1.4em; margin: var(--space-4) auto; font-size: 0.85rem; color: var(--muted); }
+.cc-upload-status.is-error { color: var(--accent-deep); }
 
-/* Faila vizualizācija */
-.calc__preview {
-  border-top: 1px solid var(--line);
-  background: var(--ink);
-  overflow: hidden;
-}
-.calc__preview-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: 0.6rem 0.9rem;
-  border-bottom: 1px solid rgba(var(--on-dark-rgb), 0.12);
-}
-.calc__preview-title {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(var(--on-dark-rgb), 0.6);
-}
-.calc__preview-hint {
-  font-size: 0.72rem;
-  color: rgba(var(--on-dark-rgb), 0.5);
-}
-.calc__preview-body {
-  background-color: var(--ink);
-  background-image:
-    linear-gradient(rgba(var(--accent-rgb), 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(var(--accent-rgb), 0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-.calc__preview-svg {
-  display: block;
+.cc-link { margin-top: var(--space-4); font-size: 0.9rem; color: var(--accent-deep); text-decoration: underline; text-underline-offset: 3px; }
+.cc-link:hover { color: var(--text); }
+
+.cc-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-top: var(--space-6); padding: 0; list-style: none; }
+.cc-steps li { padding: var(--space-4); background: var(--bg-card); border: 1px solid var(--line); font-size: 0.85rem; }
+.cc-steps strong { color: var(--accent-deep); }
+.cc-note { margin: var(--space-4) auto 0; font-size: 0.78rem; color: var(--muted); }
+.cc-note a { color: var(--accent-deep); text-decoration: underline; }
+
+/* ---------- Formu elementi ---------- */
+.cc-label { display: block; margin-bottom: 0.35rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.cc-select, .cc-input {
   width: 100%;
-  height: 400px;
-  color: var(--on-dark);
-}
-.calc__preview-wrap { position: relative; }
-.calc__preview-canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-  cursor: grab;
-  touch-action: none;
-}
-.calc__preview-canvas:active { cursor: grabbing; }
-.calc__viewcube {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
-  width: 116px;
-  height: 116px;
-  background: var(--ink);
-  border: 1px solid rgba(var(--on-dark-rgb), 0.16);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.calc__viewcube:hover { border-color: rgba(var(--on-dark-rgb), 0.35); }
-
-/* Vienību izvēle — izcelta, jo STL/STEP nesatur vienību info */
-.calc__units-field {
-  padding: var(--space-4);
-  border: 1px solid var(--accent);
-  background: rgba(var(--accent-rgb), 0.08);
-}
-.calc__units-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--accent);
-}
-.calc__units-icon { width: 1rem; height: 1rem; flex-shrink: 0; }
-.calc__units-field .select { border-color: var(--accent); font-weight: 600; }
-.calc__units-field .field__hint { color: var(--text); }
-
-/* Faila karte */
-.calc__filecard {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border: 1px solid var(--accent);
-  background: rgba(var(--accent-rgb), 0.06);
-}
-.calc__filecard-info { display: grid; gap: 0.25rem; min-width: 0; }
-.calc__filecard-name { font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
-.calc__filecard-meta { font-size: 0.85rem; color: var(--muted); }
-.calc__filecard-geo { font-size: 0.85rem; color: var(--text); }
-.calc__filecard-remove {
-  flex-shrink: 0;
-  padding: 0.5rem 0.9rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--bg-card);
   border: 1px solid var(--line);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent);
-  transition: background var(--transition), border-color var(--transition);
-}
-.calc__filecard-remove:hover { border-color: var(--accent); }
-
-/* Checkbox */
-.calc__check {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.95rem;
-  cursor: pointer;
+  font-size: 0.9rem;
   color: var(--text);
 }
-.calc__check input { accent-color: var(--accent); width: 1rem; height: 1rem; flex-shrink: 0; }
+.cc-select:focus, .cc-input:focus { outline: none; border-color: var(--accent); }
+textarea.cc-input { resize: vertical; min-height: 5rem; }
+.cc-group { min-width: 0; }
+.cc-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.cc-hint { font-size: 0.75rem; color: var(--muted); max-width: none; }
+.cc-check { display: flex; align-items: center; gap: 0.6rem; font-size: 0.88rem; cursor: pointer; }
+.cc-check input { width: 1rem; height: 1rem; accent-color: var(--accent); }
 
-/* Slīdnis */
-.calc__range-row { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
-.calc__range-value { font-family: var(--font-sans); font-weight: 600; color: var(--accent); }
-.calc__range-row .field__hint { flex: 1; }
-.calc__range-row .field__hint:last-child { text-align: right; }
-
-/* Ticamība */
-.calc__confidence {
+/* ---------- 2. ekrāns ---------- */
+.cc-grid {
   display: grid;
-  gap: 0.35rem;
-  padding-bottom: var(--space-4);
-  margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--line-light);
+  grid-template-columns: 17rem minmax(0, 1fr) 20rem;
+  height: calc(100vh - 76px - 88px);
+  min-height: 32rem;
+  border-top: 1px solid var(--line);
 }
-.calc__confidence-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(var(--on-dark-rgb), 0.6);
-}
-.calc__confidence-value {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  color: var(--on-dark);
-}
-.calc__confidence-value::before {
-  content: "";
-  width: 0.65rem;
-  height: 0.65rem;
-  background: rgba(var(--on-dark-rgb), 0.45);
-}
-.calc__confidence-value[data-level="augsta"]::before { background: var(--ok); }
-.calc__confidence-value[data-level="videja"]::before { background: var(--accent-on-dark); }
-.calc__confidence-value[data-level="zema"]::before { background: rgba(var(--on-dark-rgb), 0.45); }
-.calc__confidence-note { font-size: 0.85rem; color: rgba(var(--on-dark-rgb), 0.65); }
+.cc-panel { overflow-y: auto; background: var(--bg-card); }
+.cc-parts { border-right: 1px solid var(--line); }
+.cc-controls { border-left: 1px solid var(--line); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
 
-/* Kontaktforma tumšajā panelī */
-.calc__contact {
-  margin-top: var(--space-5);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--line-light);
-}
-.calc__contact-title {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  color: var(--on-dark);
-  margin-bottom: var(--space-4);
-}
-.calc__contact .label { color: var(--on-dark); }
-.calc__contact .input,
-.calc__contact .textarea {
-  background: rgba(24, 33, 32, 0.55);
-  border-color: var(--line-light);
-  color: var(--on-dark);
-}
-.calc__contact .input:focus,
-.calc__contact .textarea:focus { border-color: var(--accent); }
-.calc__contact .field__hint { color: rgba(var(--on-dark-rgb), 0.6); }
-.calc__contact .field__error { color: var(--accent-on-dark); }
-.calc__contact-actions {
+.cc-panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-4); border-bottom: 1px solid var(--line); }
+.cc-panel-head h2 { font-size: 1rem; }
+.cc-panel-actions { display: flex; gap: 0.4rem; }
+.cc-add { white-space: nowrap; padding: 0.4rem 0.6rem; background: var(--accent); color: var(--accent-ink); font-size: 0.75rem; font-weight: 600; }
+.cc-add:hover { opacity: 0.86; }
+.cc-add--ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.cc-add--ghost:hover { border-color: var(--accent); color: var(--accent-deep); opacity: 1; }
+
+.cc-parts-list { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); list-style: none; }
+.cc-part { position: relative; border: 1px solid var(--line); transition: border-color var(--transition); }
+.cc-part.is-active { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.05); }
+.cc-part-btn { display: flex; flex-direction: column; gap: 0.15rem; width: 100%; padding: var(--space-3) 2.2rem var(--space-3) var(--space-3); text-align: left; }
+.cc-part-name { font-size: 0.85rem; font-weight: 600; word-break: break-word; }
+.cc-part-meta { font-size: 0.75rem; color: var(--muted); }
+.cc-part-warn { font-size: 0.72rem; color: var(--accent-deep); }
+.cc-part-remove { position: absolute; top: 0.5rem; right: 0.5rem; width: 1.5rem; height: 1.5rem; border: 1px solid var(--line); font-size: 0.95rem; line-height: 1; color: var(--muted); }
+.cc-part-remove:hover { border-color: var(--accent); color: var(--accent-deep); }
+
+.cc-viewer { position: relative; min-width: 0; background: linear-gradient(var(--bg), var(--bg-soft)); }
+.cc-viewer canvas:first-of-type { display: block; width: 100%; height: 100%; }
+.cc-viewer-hint { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.9rem; color: var(--muted); pointer-events: none; }
+.cc-viewer-hint[hidden] { display: none; }
+.cc-viewer-help { position: absolute; left: var(--space-4); bottom: var(--space-3); font-size: 0.72rem; color: var(--muted); pointer-events: none; }
+.cc-view-cube { position: absolute; right: var(--space-4); bottom: var(--space-4); width: 92px; height: 92px; cursor: pointer; }
+
+.cc-kind { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-deep); }
+.cc-qty { display: grid; grid-template-columns: 2.4rem 1fr 2.4rem; border: 1px solid var(--line); background: var(--bg-card); }
+.cc-qty button { font-size: 1.1rem; color: var(--text); }
+.cc-qty button:hover { background: rgba(var(--accent-rgb), 0.08); }
+.cc-qty input { width: 100%; min-width: 0; padding: 0.6rem 0; border: 0; border-inline: 1px solid var(--line); background: transparent; text-align: center; font-size: 0.9rem; -moz-appearance: textfield; }
+.cc-qty input::-webkit-outer-spin-button, .cc-qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.cc-warn { padding: var(--space-3); border: 1px solid var(--accent); background: rgba(var(--accent-rgb), 0.07); font-size: 0.8rem; line-height: 1.5; }
+
+.cc-summary { margin-top: auto; padding-top: var(--space-4); border-top: 1px solid var(--line); }
+.cc-sum-title { margin-bottom: var(--space-2); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.cc-sum-row { display: flex; justify-content: space-between; gap: var(--space-3); padding: 0.4rem 0; border-bottom: 1px dashed var(--line); font-size: 0.82rem; }
+.cc-sum-row span { color: var(--muted); }
+.cc-sum-row strong { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cc-sum-total { border-bottom: 0; font-size: 0.95rem; }
+
+.cc-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-4);
-  flex-wrap: wrap;
-  margin-top: var(--space-4);
+  min-height: 88px;
+  padding: var(--space-3) var(--space-5);
+  background: var(--ink);
+  color: var(--on-dark);
 }
-.calc__contact-status { font-size: 0.9rem; color: rgba(var(--on-dark-rgb), 0.75); }
-.calc__contact-note { margin-top: var(--space-3); font-size: 0.85rem; color: rgba(var(--on-dark-rgb), 0.72); }
+.cc-bar .btn--ghost { color: var(--on-dark); border-color: var(--line-light); }
+.cc-bar .btn--ghost:hover { color: var(--accent-on-dark); border-color: var(--accent-on-dark); }
+.cc-bar-right { display: flex; align-items: center; gap: var(--space-5); }
+.cc-total { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+.cc-total span { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(var(--on-dark-rgb), 0.65); }
+.cc-total strong { font-family: var(--font-display); font-size: 1.9rem; font-weight: 600; line-height: 1.1; color: var(--accent-on-dark); font-variant-numeric: tabular-nums; }
+.cc-total small { max-width: 34rem; font-size: 0.72rem; color: rgba(var(--on-dark-rgb), 0.65); }
 
-/* Responsīvs */
+/* ---------- Pieteikuma logs ---------- */
+.cc-modal-overlay { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: var(--space-4); background: rgba(24, 33, 32, 0.6); }
+.cc-modal-overlay[hidden] { display: none; }
+.cc-modal { position: relative; width: 100%; max-width: 38rem; max-height: calc(100vh - 2rem); overflow-y: auto; padding: var(--space-6); background: var(--bg-card); }
+.cc-modal h2 { font-size: 1.6rem; }
+.cc-modal-sub { margin-top: var(--space-2); font-size: 0.9rem; color: var(--muted); }
+.cc-modal-close { position: absolute; top: var(--space-3); right: var(--space-3); width: 2.2rem; height: 2.2rem; font-size: 1.4rem; color: var(--muted); }
+.cc-modal-close:hover { color: var(--accent-deep); }
+.cc-modal form { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-5); }
+.cc-order-summary { margin-top: var(--space-4); border: 1px solid var(--line); }
+.cc-order-item { display: grid; gap: 0.15rem; padding: var(--space-3); border-bottom: 1px solid var(--line); font-size: 0.82rem; }
+.cc-order-item div:nth-child(2) { color: var(--muted); }
+.cc-order-total { padding: var(--space-3); font-size: 0.95rem; text-align: right; }
+.cc-order-total span { font-size: 0.75rem; color: var(--muted); }
+.cc-form-status { min-height: 1.2em; font-size: 0.85rem; }
+.cc-form-status.is-ok { color: #2f7a4d; }
+.cc-form-status.is-error { color: var(--accent-deep); }
+.cc-form-status a { text-decoration: underline; }
+
+/* ---------- Responsīvi ---------- */
+@media (max-width: 70em) {
+  .cc-grid { grid-template-columns: 15rem minmax(0, 1fr) 18rem; }
+}
+@media (max-width: 56em) {
+  .cc-grid { grid-template-columns: 1fr; height: auto; }
+  .cc-parts { border-right: 0; border-bottom: 1px solid var(--line); max-height: 16rem; }
+  .cc-viewer { height: 60vw; min-height: 18rem; }
+  .cc-controls { border-left: 0; border-top: 1px solid var(--line); }
+  .cc-bar { flex-direction: column; align-items: stretch; }
+  .cc-bar-right { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+  .cc-total { align-items: flex-start; text-align: left; }
+}
 @media (max-width: 40em) {
-  .calc__tabs { flex-direction: column; border-bottom: 0; }
-  .calc__tab { border-bottom: 0; border-left: 3px solid transparent; text-align: left; }
-  .calc__tab.is-active { border-left-color: var(--accent); }
-  .calc__filecard { flex-direction: column; align-items: flex-start; }
+  .cc-bar { flex-direction: row; align-items: center; min-height: 0; padding: var(--space-3) var(--space-4); }
+  .cc-bar > .btn--ghost, .cc-total small, .cc-viewer-help { display: none; }
+  .cc-bar-right { flex: 1; flex-direction: row; align-items: center; justify-content: space-between; }
+  .cc-total strong { font-size: 1.5rem; }
+  .cc-bar .btn--lg { padding: 0.8rem 1rem; font-size: 0.9rem; }
+  .cc-steps { grid-template-columns: 1fr; }
+  .cc-row2 { grid-template-columns: 1fr; }
+  .cc-modal { padding: var(--space-5); }
 }
-
