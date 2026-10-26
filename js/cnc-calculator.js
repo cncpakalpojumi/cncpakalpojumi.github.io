@@ -88,6 +88,8 @@ function estimateOrder() {
    ====================================================================== */
 const eur = new Intl.NumberFormat('lv-LV', { style: 'currency', currency: 'EUR' });
 const fmtEur = (v) => eur.format(v);
+const SHOW_PRICES = PRICING.showPrices !== false;
+const ON_REQUEST = 'Cena pēc pieprasījuma';
 const fmtNum = (v, d = 1) => v.toLocaleString('lv-LV', { minimumFractionDigits: d, maximumFractionDigits: d });
 const fmtMin = (min) => {
   const m = Math.max(1, Math.round(min));
@@ -167,6 +169,10 @@ const ACCENT = 0xb64a1b;
 const INK = 0x182120;
 const edgeMaterial = new THREE.LineBasicMaterial({ color: INK, transparent: true, opacity: 0.18 });
 const contourMaterial = new THREE.LineBasicMaterial({ color: ACCENT });
+// Kontūru skats (pirmā versija): vienkārša virsma ar tumšām šķautnēm
+const plainMaterial = new THREE.MeshStandardMaterial({ color: 0xc9a27a, roughness: 0.7, metalness: 0.05, flatShading: true, side: THREE.DoubleSide });
+const lineEdgeMaterial = new THREE.LineBasicMaterial({ color: INK });
+let viewMode = 'material';   // 'material' | 'lines'
 const stockMaterial = new THREE.MeshBasicMaterial({ color: 0x8f9896, transparent: true, opacity: 0.04, depthWrite: false });
 const stockEdgeMaterial = new THREE.LineBasicMaterial({ color: 0x6f7876, transparent: true, opacity: 0.45 });
 
@@ -220,10 +226,19 @@ function buildPartObject(part) {
   const t = part.thickness;
   const geo = part.geo;
   const mat = findMaterial(part.materialId);
-  const materials = getPartMaterials(mat.id, mat.group, t);
+  const lines = viewMode === 'lines';
+  const materials = lines ? plainMaterial : getPartMaterials(mat.id, mat.group, t);
 
   let solid = null;
-  if (part.kind === 'mesh') {
+  if (lines && part.kind === 'dxf') {
+    // Kontūru skats: augšējā kontūra oranža, apakšējā – tumša
+    for (const p of geo.paths) {
+      const top = p.pts.map((q) => new THREE.Vector3(q[0], q[1], t));
+      if (p.closed && top.length > 2) top.push(top[0].clone());
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(top), contourMaterial));
+      group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(top.map((v) => new THREE.Vector3(v.x, v.y, 0))), lineEdgeMaterial));
+    }
+  } else if (part.kind === 'mesh') {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(part.tris, 3));
     solid = texturedGeometry(g, geo.bbox.minZ, Math.max(geo.sizeZ, 0.1));
@@ -248,7 +263,9 @@ function buildPartObject(part) {
     toCreasedNormals(solid, THREE.MathUtils.degToRad(35));
     group.add(new THREE.Mesh(solid, materials));
     const triCount = solid.attributes.position.count / 3;
-    if (triCount < 150000 && mat.group !== 'acrylic') group.add(new THREE.LineSegments(new THREE.EdgesGeometry(solid, 30), edgeMaterial));
+    if (triCount < 150000 && (lines || mat.group !== 'acrylic')) {
+      group.add(new THREE.LineSegments(new THREE.EdgesGeometry(solid, 30), lines ? lineEdgeMaterial : edgeMaterial));
+    }
   }
 
   // Sagatave (loksnes gabals) ar 5 mm rezervi katrā pusē
@@ -553,7 +570,7 @@ function renderPartsList() {
         '<span class="cc-part-top"><span class="cc-tag">' + type + '</span><span class="cc-part-name">' + escapeHtml(p.name) + '</span></span>' +
         '<span class="cc-part-meta">' + fmtDims(p) + '</span>' +
         '<span class="cc-part-meta">' + escapeHtml(e.mat.label) + '</span>' +
-        '<span class="cc-part-bottom"><span>' + p.quantity + ' gab.</span><strong>' + fmtEur(e.total) + '</strong></span>' +
+        '<span class="cc-part-bottom"><span>' + p.quantity + ' gab.</span>' + (SHOW_PRICES ? '<strong>' + fmtEur(e.total) + '</strong>' : '') + '</span>' +
         (partWarnings(p).length ? '<span class="cc-part-warn">Jāpārbauda</span>' : '') +
       '</button>' +
       '<button type="button" class="cc-part-remove" aria-label="Noņemt detaļu ' + escapeHtml(p.name) + '">' + ICON_X + '</button>';
@@ -639,10 +656,13 @@ function renderControls() {
     '<div class="cc-summary">' +
       '<div class="cc-sum-row"><span>Gabarīti</span><strong>' + fmtDims(part) + '</strong></div>' +
       (part.geo.lengthMm ? '<div class="cc-sum-row"><span>Griezuma garums</span><strong>' + fmtNum(part.geo.lengthMm / 1000, 2) + ' m</strong></div>' : '') +
-      '<div class="cc-sum-row"><span>Mašīnlaiks, gab.</span><strong>' + fmtMin(e.minutes) + '</strong></div>' +
-      '<div class="cc-sum-row"><span>Materiāls, gab.</span><strong>' + (part.ownMaterial ? 'klienta' : fmtEur(e.materialCost)) + '</strong></div>' +
-      '<div class="cc-sum-row"><span>Cena, gab.</span><strong>' + fmtEur(e.unit) + '</strong></div>' +
-      '<div class="cc-sum-row cc-sum-total"><span>Kopā, ' + part.quantity + ' gab.</span><strong>' + fmtEur(e.total) + '</strong></div>' +
+      (SHOW_PRICES
+        ? '<div class="cc-sum-row"><span>Mašīnlaiks, gab.</span><strong>' + fmtMin(e.minutes) + '</strong></div>' +
+          '<div class="cc-sum-row"><span>Materiāls, gab.</span><strong>' + (part.ownMaterial ? 'klienta' : fmtEur(e.materialCost)) + '</strong></div>' +
+          '<div class="cc-sum-row"><span>Cena, gab.</span><strong>' + fmtEur(e.unit) + '</strong></div>' +
+          '<div class="cc-sum-row cc-sum-total"><span>Kopā, ' + part.quantity + ' gab.</span><strong>' + fmtEur(e.total) + '</strong></div>'
+        : '<div class="cc-sum-row"><span>Daudzums</span><strong>' + part.quantity + ' gab.</strong></div>' +
+          '<div class="cc-sum-row cc-sum-total"><span>Cena</span><strong class="cc-on-request">' + ON_REQUEST + '</strong></div>') +
     '</div>';
 
   controlsEl.innerHTML = html;
@@ -684,6 +704,12 @@ function bindControls(part) {
 
 function renderPrice() {
   const o = estimateOrder();
+  if (!SHOW_PRICES) {
+    totalEl.textContent = ON_REQUEST;
+    orderBtn.disabled = !parts.length;
+    breakdownEl.innerHTML = '';
+    return;
+  }
   totalEl.textContent = fmtEur(o.total);
   orderBtn.disabled = !parts.length;
   if (!parts.length) { breakdownEl.innerHTML = ''; return; }
@@ -729,14 +755,18 @@ function orderText(form) {
     lines.push('   Gabarīti: ' + fmtDims(p));
     lines.push('   Materiāls: ' + e.mat.label + (p.ownMaterial ? ' (klienta materiāls)' : ''));
     lines.push('   Daudzums: ' + p.quantity + ' gab.');
-    lines.push('   Mašīnlaiks: ' + fmtMin(e.minutes) + ' / gab.');
-    lines.push('   Cena: ' + fmtEur(e.total));
+    lines.push('   Mašīnlaiks (kalkulatora novērtējums): ' + fmtMin(e.minutes) + ' / gab.');
+    if (SHOW_PRICES) lines.push('   Cena: ' + fmtEur(e.total));
     lines.push('');
   });
-  lines.push('Sagatavošana (' + o.setupCount + '): ' + fmtEur(o.setupCost));
-  lines.push('Faila apstrāde (' + parts.length + '): ' + fmtEur(o.fileCost));
-  if (o.minApplied) lines.push('Piemērota minimālā pasūtījuma summa.');
-  lines.push('KOPĀ (bez PVN, orientējoši): ' + fmtEur(o.total));
+  if (SHOW_PRICES) {
+    lines.push('Sagatavošana (' + o.setupCount + '): ' + fmtEur(o.setupCost));
+    lines.push('Faila apstrāde (' + parts.length + '): ' + fmtEur(o.fileCost));
+    if (o.minApplied) lines.push('Piemērota minimālā pasūtījuma summa.');
+    lines.push('KOPĀ (bez PVN, orientējoši): ' + fmtEur(o.total));
+  } else {
+    lines.push('Cena: pēc pieprasījuma (klientam kalkulatorā netika rādīta)');
+  }
   if (form.message) { lines.push(''); lines.push('Komentārs: ' + form.message); }
   return lines.join('\n');
 }
@@ -746,9 +776,11 @@ function renderOrderSummary() {
   orderSummaryEl.innerHTML = parts.map((p) => {
     const e = estimatePart(p);
     return '<div class="cc-order-item"><div><strong>' + escapeHtml(p.name) + '</strong> · ' + p.quantity + ' gab.</div>' +
-      '<div>' + fmtDims(p) + ' · ' + escapeHtml(e.mat.label) + '</div><div>' + fmtEur(e.total) + '</div></div>';
+      '<div>' + fmtDims(p) + ' · ' + escapeHtml(e.mat.label) + '</div>' + (SHOW_PRICES ? '<div>' + fmtEur(e.total) + '</div>' : '') + '</div>';
   }).join('') +
-    '<div class="cc-order-total">Kopā: <strong>' + fmtEur(o.total) + '</strong> <span>bez PVN, orientējoši</span></div>';
+    (SHOW_PRICES
+      ? '<div class="cc-order-total">Kopā: <strong>' + fmtEur(o.total) + '</strong> <span>bez PVN, orientējoši</span></div>'
+      : '<div class="cc-order-total"><strong>' + ON_REQUEST + '</strong></div>');
 }
 
 function openOrder() {
@@ -808,6 +840,8 @@ orderForm.addEventListener('submit', async (ev) => {
    Notikumi
    ====================================================================== */
 defaultMaterialSel.innerHTML = materialOptions(DEFAULT_MATERIAL);
+document.documentElement.classList.toggle('cc-no-prices', !SHOW_PRICES);
+document.querySelectorAll('[data-prices]').forEach((el) => { el.hidden = (el.dataset.prices === 'show') !== SHOW_PRICES; });
 
 function bindDrop(zone, input) {
   zone.addEventListener('click', (e) => { if (!e.target.closest('button, select, input, a, label')) input.click(); });
@@ -830,6 +864,16 @@ orderBtn.addEventListener('click', openOrder);
 orderClose.addEventListener('click', closeOrder);
 orderModal.addEventListener('click', (e) => { if (e.target === orderModal) closeOrder(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !orderModal.hidden) closeOrder(); });
+
+// Skata režīms: materiāls / kontūras
+document.querySelectorAll('[data-view]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (viewMode === btn.dataset.view) return;
+    viewMode = btn.dataset.view;
+    document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    showModel(getActive(), false);
+  });
+});
 
 // Testiem un atkļūdošanai
 window.__cncCalc = { get parts() { return parts; }, estimatePart, estimateOrder, loadFiles };

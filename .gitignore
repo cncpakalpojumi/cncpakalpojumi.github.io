@@ -9,3 +9,6 @@ out/
 .vercel/
 *.tsbuildinfo
 next-env.d.ts
+
+# Iekšējs cenu aprēķina apraksts – nepublicēt
+cenu-aprekins.md

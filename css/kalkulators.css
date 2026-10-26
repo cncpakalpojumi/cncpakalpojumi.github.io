@@ -253,3 +253,15 @@ textarea.cc-input { height: auto; min-height: 5.5rem; padding: 0.7rem 0.85rem; r
   .cc-viewer-help { display: none; }
   .cc-modal { padding: var(--space-5) var(--space-4); }
 }
+
+/* ---------- Cena pēc pieprasījuma (PRICING.showPrices = false) ---------- */
+.cc-no-prices .cc .cc-total strong { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; letter-spacing: 0; }
+.cc-no-prices .cc-order-total strong { font-family: var(--font-display); font-weight: 600; }
+.cc .cc-sum-total .cc-on-request { font-family: var(--font-display); font-size: 0.95rem; }
+
+/* ---------- Skata režīms ---------- */
+.cc-view-toggle { position: absolute; top: var(--space-4); right: var(--space-4); z-index: 2; display: flex; padding: 3px; background: rgba(255, 255, 255, 0.9); border: 1px solid var(--line); }
+.cc-view-toggle button { height: 2rem; padding: 0 0.85rem; font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; color: var(--muted); transition: background var(--transition), color var(--transition); }
+.cc-view-toggle button:hover { color: var(--text); }
+.cc-view-toggle button[aria-pressed="true"] { background: var(--ink); color: var(--on-dark); }
+.cc-view-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

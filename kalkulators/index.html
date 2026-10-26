@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CNC frēzēšanas cenu kalkulators | CNC PAKALPOJUMI</title>
-  <meta name="description" content="CNC frēzēšanas orientējošā cena tiešsaistē. Augšupielādējiet DXF, STL, OBJ vai STEP failu, izvēlieties materiālu un biezumu. Cenas bez PVN.">
+  <meta name="description" content="Augšupielādējiet DXF, STL, OBJ vai STEP failu, izvēlieties materiālu un biezumu un nosūtiet CNC frēzēšanas cenas pieprasījumu.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="lv_LV">
   <meta property="og:site_name" content="CNC PAKALPOJUMI">
   <meta property="og:title" content="CNC frēzēšanas cenu kalkulators | CNC PAKALPOJUMI">
-  <meta property="og:description" content="CNC frēzēšanas orientējošā cena tiešsaistē: koks, plastmasa, alumīnijs.">
+  <meta property="og:description" content="CNC frēzēšanas cenas pieprasījums pēc faila: koks, plastmasa, alumīnijs.">
   <meta property="og:url" content="https://cncpakalpojumi.lv/kalkulators/">
   <meta property="og:image" content="https://cncpakalpojumi.lv/images/m3-1325-iekarta.jpg">
   <link rel="canonical" href="https://cncpakalpojumi.lv/kalkulators/">
@@ -59,8 +59,9 @@
       <div class="cc-screen cc-upload-screen is-active" id="cc-upload-screen">
         <div class="page-hero cc-hero">
           <div class="container page-hero__inner">
-            <h1 class="page-hero__title" id="cc-title">Cenu kalkulators</h1>
-            <p class="page-hero__lead">Augšupielādējiet rasējumu vai 3D modeli, izvēlieties materiālu un uzreiz redzēsiet orientējošo cenu. Failu apstrādā Jūsu pārlūks, un tas netiek nekur nosūtīts.</p>
+            <h1 class="page-hero__title" id="cc-title"><span data-prices="show">Cenu kalkulators</span><span data-prices="hide" hidden>Cenas pieprasījums</span></h1>
+            <p class="page-hero__lead" data-prices="show">Augšupielādējiet rasējumu vai 3D modeli, izvēlieties materiālu un uzreiz redzēsiet orientējošo cenu. Failu apstrādā Jūsu pārlūks, un tas netiek nekur nosūtīts.</p>
+            <p class="page-hero__lead" data-prices="hide" hidden>Augšupielādējiet rasējumu vai 3D modeli un izvēlieties materiālu. Nosūtiet pieteikumu, un nākamajā darba dienā atbildēsim ar cenu un izpildes termiņu.</p>
           </div>
         </div>
 
@@ -86,16 +87,23 @@
             </div>
           </div>
 
-          <aside class="cc-upload-aside" aria-label="Kā veidojas cena">
-            <h2>Kā veidojas cena</h2>
-            <dl class="cc-rates">
-              <div><dt>Mašīnlaiks</dt><dd>60 €/h</dd></div>
-              <div><dt>Faila apstrāde</dt><dd>30 € / detaļa</dd></div>
-              <div><dt>Iekārtas sagatavošana</dt><dd>15 € / materiāls</dd></div>
-              <div><dt>Materiāls</dt><dd>pēc loksnes cenas</dd></div>
-              <div><dt>Minimālais pasūtījums</dt><dd>100 €</dd></div>
-            </dl>
-            <p class="cc-aside-note">Visas cenas bez PVN. Kalkulators rāda orientējošu cenu, un precīzu cenu apstiprinām pēc faila pārbaudes.</p>
+          <aside class="cc-upload-aside" aria-label="Cena">
+            <div data-prices="show">
+              <h2>Kā veidojas cena</h2>
+              <dl class="cc-rates">
+                <div><dt>Mašīnlaiks</dt><dd>60 €/h</dd></div>
+                <div><dt>Faila apstrāde</dt><dd>30 € / detaļa</dd></div>
+                <div><dt>Iekārtas sagatavošana</dt><dd>15 € / materiāls</dd></div>
+                <div><dt>Materiāls</dt><dd>pēc loksnes cenas</dd></div>
+                <div><dt>Minimālais pasūtījums</dt><dd>100 €</dd></div>
+              </dl>
+              <p class="cc-aside-note">Visas cenas bez PVN. Kalkulators rāda orientējošu cenu, un precīzu cenu apstiprinām pēc faila pārbaudes.</p>
+            </div>
+            <div data-prices="hide" hidden>
+              <h2>Cena pēc pieprasījuma</h2>
+              <p class="cc-aside-note">Pievienojiet detaļas, izvēlieties materiālu un nosūtiet pieteikumu. Pārbaudīsim failus un nākamajā darba dienā atbildēsim ar cenu un izpildes termiņu.</p>
+              <p class="cc-aside-note">Minimālā pasūtījuma summa ir 100 € bez PVN.</p>
+            </div>
             <p class="cc-aside-note">DWG, AI, EPS un PDF failus kalkulators nenolasa. Tos varat pievienot pieteikumam kā saiti vai nosūtīt uz <a href="mailto:razosana@bratus.lv">razosana@bratus.lv</a>.</p>
           </aside>
         </div>
@@ -119,6 +127,10 @@
           <div class="cc-viewer" id="cc-viewer" aria-label="Detaļas priekšskatījums">
             <div class="cc-viewer-hint" id="cc-viewer-hint">Detaļa parādīsies šeit</div>
             <p class="cc-dims" id="cc-dims"></p>
+            <div class="cc-view-toggle" role="group" aria-label="Skata režīms">
+              <button type="button" data-view="material" aria-pressed="true">Materiāls</button>
+              <button type="button" data-view="lines" aria-pressed="false">Kontūras</button>
+            </div>
             <p class="cc-viewer-help">Vilkt – pagriezt · labā poga – pārvietot · ritenītis – tuvināt</p>
           </div>
 
@@ -130,7 +142,8 @@
           <dl class="cc-breakdown" id="cc-breakdown"></dl>
           <div class="cc-bar-right">
             <div class="cc-total">
-              <span>Kopā bez PVN</span>
+              <span data-prices="show">Kopā bez PVN</span>
+              <span data-prices="hide" hidden>Jūsu pieteikums</span>
               <strong id="cc-total">0,00 €</strong>
             </div>
             <button class="btn btn--pill btn--lg" id="cc-order-btn" type="button" disabled>Nosūtīt pieteikumu</button>
@@ -165,40 +178,6 @@
     </div>
   </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="site-footer__grid">
-        <div class="site-footer__brand">
-          <a class="logo" href="/">CNC<span>/</span>PAKALPOJUMI</a>
-          <p class="site-footer__desc">CNC frēzēšana kokam, plastmasai un alumīnijam darba laukā līdz 1300 × 2500&nbsp;mm. Pakalpojumu sniedz SIA Bratus.</p>
-          <svg class="site-footer__leaf" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 4 13c0-4 3-7 16-9 0 13-4 16-9 16z"/><path d="M4 20c2-4 5-7 9-9"/></svg>
-        </div>
-        <div>
-          <h2 class="site-footer__heading">Navigācija</h2>
-          <ul class="site-footer__nav">
-            <li><a class="site-footer__link" href="/pakalpojumi/">Pakalpojumi</a></li>
-            <li><a class="site-footer__link" href="/kalkulators/">Kalkulators</a></li>
-            <li><a class="site-footer__link" href="/par-mums/">Par mums</a></li>
-            <li><a class="site-footer__link" href="/kontakti/">Kontakti</a></li>
-          </ul>
-        </div>
-        <div>
-          <h2 class="site-footer__heading">Kontakti</h2>
-          <ul class="site-footer__contacts">
-            <li class="site-footer__contact"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a class="site-footer__link" href="tel:+37122089861">+371 22 089 861</a></li>
-            <li class="site-footer__contact"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a class="site-footer__link" href="mailto:razosana@bratus.lv">razosana@bratus.lv</a></li>
-            <li class="site-footer__contact"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Pliederu iela 22, Ķekava</li>
-          </ul>
-        </div>
-      </div>
-      <div class="site-footer__bottom">
-        <p>© <span id="gads">2026</span> CNC PAKALPOJUMI. Visas tiesības aizsargātas.</p>
-        <div class="site-footer__social">
-          <a href="https://www.instagram.com/bratus_machinery/" target="_blank" rel="noopener" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-        </div>
-      </div>
-    </div>
-  </footer>
 
   <script src="/js/main.js" defer></script>
   <script type="module" src="/js/cnc-calculator.js"></script>

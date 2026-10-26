@@ -24,6 +24,7 @@ export const PRICING = {
   setupMinutes: 15,     // iekārtas sagatavošana katram materiāla un biezuma veidam
   materialWaste: 1.15,  // loksnes atgriezumi +15 %
   minOrder: 100,        // € minimālā pasūtījuma summa
+  showPrices: false,    // false – lapā rāda „Cena pēc pieprasījuma”; aprēķins darbojas fonā (sk. cenu-aprekins.md)
   email: 'razosana@bratus.lv',
   formEndpoint: 'https://shopforms.vercel.app/api/send-email',
   formIdentifier: 'manufacturing'
