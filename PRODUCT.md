@@ -12,7 +12,7 @@ Uzņēmumi un ražotāji (B2B), kam nepieciešami lielāki, atkārtojami CNC fr�
 
 ## Product Purpose
 
-CNC frēzēšanas pakalpojumi Latvijā: ar vienu 3 asu frēzi (Wattsan M3-1325, darba lauks 1300 × 2500 mm) apstrādā koku, plastmasu un alumīniju — no faila līdz gatavai detaļai. Vietnes mērķis ir pārvērst apmeklētāju par pasūtītāju, izmantojot tūlītēju cenu kalkulatoru un ātru tāmi. Panākumi = kvalificēti B2B pieprasījumi un nosūtīti faili.
+CNC frēzēšanas pakalpojumi Latvijā: ar vienu 3 asu frēzi (Wattsan A1-1325, darba lauks 1300 × 2500 mm) apstrādā koku, plastmasu un alumīniju — no faila līdz gatavai detaļai. Vietnes mērķis ir pārvērst apmeklētāju par pasūtītāju, izmantojot tūlītēju cenu kalkulatoru un ātru tāmi. Panākumi = kvalificēti B2B pieprasījumi un nosūtīti faili.
 
 ## Positioning
 
@@ -20,7 +20,7 @@ CNC frēzēšanas pakalpojumi Latvijā: ar vienu 3 asu frēzi (Wattsan M3-1325, 
 
 ## Operating Context
 
-- Viena iekārta: Wattsan M3-1325, 3 asis, darba lauks 1300 × 2500 mm.
+- Viena iekārta: Wattsan A1-1325, 3 asis, darba lauks 1300 × 2500 mm.
 - Materiāli: koks / MDF / saplāksnis; plastmasa / akrils / kompozīti; alumīnijs / mīkstie metāli.
 - Pakalpojumi: 2D kontūrgriešana, 3D reljefs / gravējums, sērijveida ražošana.
 - Pieņemamie failu formāti: DXF, DWG, AI, EPS, PDF, STL, STEP. Faila sagatavošana pēc skices – par papildu maksu.
