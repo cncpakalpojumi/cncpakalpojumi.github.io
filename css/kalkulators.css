@@ -265,3 +265,10 @@ textarea.cc-input { height: auto; min-height: 5.5rem; padding: 0.7rem 0.85rem; r
 .cc-view-toggle button:hover { color: var(--text); }
 .cc-view-toggle button[aria-pressed="true"] { background: var(--ink); color: var(--on-dark); }
 .cc-view-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- Izstrādātāja režīms (lapā uzrakstiet „cenas”) ---------- */
+.cc-dev-mode .cc-bar { box-shadow: inset 0 3px 0 var(--accent-on-dark); }
+.cc-dev-mode .cc-total span::after { content: " · izstrādātāja režīms"; color: var(--accent-on-dark); }
+.cc-dev { margin-top: var(--space-3); padding-top: var(--space-2); border-top: 1px dashed var(--line); }
+.cc-dev summary { cursor: pointer; font-size: 0.75rem; font-weight: 600; color: var(--accent-deep); }
+.cc-dev .cc-sum-row { padding: 0.15rem 0; font-size: 0.75rem; }

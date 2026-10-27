@@ -52,7 +52,7 @@ function machineMinutes(part) {
   }
 
   const total = (cut + plunge + rapid + rough + finish) / MACHINE.efficiency + MACHINE.handlingMin;
-  return { total, passes, cut: cut + plunge + rapid, mill: rough + finish };
+  return { total, passes, cut: cut + plunge + rapid, mill: rough + finish, parts: { cut, plunge, rapid, rough, finish } };
 }
 
 function estimatePart(part) {
@@ -65,7 +65,7 @@ function estimatePart(part) {
   const unit = machineCost + materialCost;
   return {
     unit, total: unit * part.quantity, machineCost, materialCost,
-    minutes: time.total, passes: time.passes, blankM2, eurM2, mat
+    minutes: time.total, passes: time.passes, time: time.parts, blankM2, eurM2, mat
   };
 }
 
@@ -88,7 +88,19 @@ function estimateOrder() {
    ====================================================================== */
 const eur = new Intl.NumberFormat('lv-LV', { style: 'currency', currency: 'EUR' });
 const fmtEur = (v) => eur.format(v);
-const SHOW_PRICES = PRICING.showPrices !== false;
+// Izstrādātāja režīms: lapā uzrakstiet „cenas” vai atveriet ar ?cenas=1 (?cenas=0 izslēdz).
+// Ieslēgts saglabājas šajā pārlūkā. Tas nav aizsardzības līdzeklis – likmes ir šajā failā.
+const DEV_KEY = 'cc-dev-prices';
+function readDevFlag() {
+  try {
+    const q = new URLSearchParams(location.search).get('cenas');
+    if (q === '1') localStorage.setItem(DEV_KEY, '1');
+    if (q === '0') localStorage.removeItem(DEV_KEY);
+    return localStorage.getItem(DEV_KEY) === '1';
+  } catch (e) { return false; }
+}
+let DEV_MODE = readDevFlag();
+let SHOW_PRICES = PRICING.showPrices !== false || DEV_MODE;
 const ON_REQUEST = 'Cena pēc pieprasījuma';
 const fmtNum = (v, d = 1) => v.toLocaleString('lv-LV', { minimumFractionDigits: d, maximumFractionDigits: d });
 const fmtMin = (min) => {
@@ -600,6 +612,37 @@ function thicknessOptions(part) {
   return opts;
 }
 
+// Izstrādātājam: visi aprēķina starplielumi vienai detaļai
+function devBreakdown(part, e) {
+  const g = GROUPS[e.mat.group];
+  const row = (k, v) => '<div class="cc-sum-row"><span>' + k + '</span><strong>' + v + '</strong></div>';
+  const min = (v) => fmtNum(v, 2) + ' min';
+  return '<details class="cc-dev" open><summary>Aprēķins (izstrādātājam)</summary>' +
+    row('Režīms', 'feed ' + g.feed + ' · ap ' + fmtNum(g.ap, 1) + ' · plunge ' + g.plunge) +
+    row('Gājieni', e.passes) +
+    row('Kontūras', part.geo.contours) +
+    row('Griešana', min(e.time.cut)) +
+    row('Iegremdēšana', min(e.time.plunge)) +
+    row('Tukšgaita', min(e.time.rapid)) +
+    row('Rupjā 3D', min(e.time.rough)) +
+    row('3D apdare', min(e.time.finish)) +
+    row('÷ ' + fmtNum(MACHINE.efficiency, 2) + ' + ' + fmtNum(MACHINE.handlingMin, 1) + ' min', min(e.minutes)) +
+    row('Mašīnlaiks × ' + PRICING.hourlyRate + ' €/h', fmtEur(e.machineCost)) +
+    row('Sagatave', fmtNum(e.blankM2, 4) + ' m²') +
+    row('Loksne', fmtNum(e.eurM2, 2) + ' €/m² × ' + fmtNum(PRICING.materialWaste, 2)) +
+    row('Materiāls', part.ownMaterial ? 'klienta' : fmtEur(e.materialCost)) +
+    '</details>';
+}
+
+function applyPriceVisibility() {
+  document.documentElement.classList.toggle('cc-no-prices', !SHOW_PRICES);
+  document.documentElement.classList.toggle('cc-dev-mode', DEV_MODE);
+  document.querySelectorAll('[data-prices]').forEach((el) => { el.hidden = (el.dataset.prices === 'show') !== SHOW_PRICES; });
+  renderPartsList();
+  renderControls();
+  renderPrice();
+}
+
 function renderControls() {
   const part = getActive();
   if (!part) { controlsEl.innerHTML = ''; return; }
@@ -660,7 +703,8 @@ function renderControls() {
         ? '<div class="cc-sum-row"><span>Mašīnlaiks, gab.</span><strong>' + fmtMin(e.minutes) + '</strong></div>' +
           '<div class="cc-sum-row"><span>Materiāls, gab.</span><strong>' + (part.ownMaterial ? 'klienta' : fmtEur(e.materialCost)) + '</strong></div>' +
           '<div class="cc-sum-row"><span>Cena, gab.</span><strong>' + fmtEur(e.unit) + '</strong></div>' +
-          '<div class="cc-sum-row cc-sum-total"><span>Kopā, ' + part.quantity + ' gab.</span><strong>' + fmtEur(e.total) + '</strong></div>'
+          '<div class="cc-sum-row cc-sum-total"><span>Kopā, ' + part.quantity + ' gab.</span><strong>' + fmtEur(e.total) + '</strong></div>' +
+          (DEV_MODE ? devBreakdown(part, e) : '')
         : '<div class="cc-sum-row"><span>Daudzums</span><strong>' + part.quantity + ' gab.</strong></div>' +
           '<div class="cc-sum-row cc-sum-total"><span>Cena</span><strong class="cc-on-request">' + ON_REQUEST + '</strong></div>') +
     '</div>';
@@ -840,8 +884,21 @@ orderForm.addEventListener('submit', async (ev) => {
    Notikumi
    ====================================================================== */
 defaultMaterialSel.innerHTML = materialOptions(DEFAULT_MATERIAL);
-document.documentElement.classList.toggle('cc-no-prices', !SHOW_PRICES);
-document.querySelectorAll('[data-prices]').forEach((el) => { el.hidden = (el.dataset.prices === 'show') !== SHOW_PRICES; });
+applyPriceVisibility();
+
+// Slēptā ieslēgšana: uzrakstiet „cenas” ārpus ievades laukiem
+let typed = '';
+document.addEventListener('keydown', (ev) => {
+  if (ev.ctrlKey || ev.metaKey || ev.altKey || ev.target.closest('input, textarea, select')) return;
+  if (ev.key.length !== 1) return;
+  typed = (typed + ev.key.toLowerCase()).slice(-5);
+  if (typed !== 'cenas') return;
+  typed = '';
+  DEV_MODE = !DEV_MODE;
+  try { DEV_MODE ? localStorage.setItem(DEV_KEY, '1') : localStorage.removeItem(DEV_KEY); } catch (e) { /* privātais režīms */ }
+  SHOW_PRICES = PRICING.showPrices !== false || DEV_MODE;
+  applyPriceVisibility();
+});
 
 function bindDrop(zone, input) {
   zone.addEventListener('click', (e) => { if (!e.target.closest('button, select, input, a, label')) input.click(); });
