@@ -330,6 +330,8 @@ export function dxfFeatures(loops) {
     // Ja platums no gabarītiem ir lielāks par 4·laukums/perimetrs (piem., slīpa sprauga), ņem mazāko
     const f = featureFrom(p, maxX - minX, maxY - minY, l.depth % 2 === 1);
     if (!f.round && p > 0) f.width = Math.min(f.width, 4 * l.area / p);
+    f.pts = l.pts;                                   // simulācijai
+    f.cx = (minX + maxX) / 2; f.cy = (minY + maxY) / 2;
     return f;
   });
 }

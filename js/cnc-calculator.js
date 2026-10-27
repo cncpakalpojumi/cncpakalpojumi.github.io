@@ -7,6 +7,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { getPartMaterials, texturedGeometry } from './cnc-textures.js';
 import { parseDxf, dxfLoops, dxfFeatures, orientTriangles, thinnestAxis, analyzeMesh, readStepTriangles } from './cnc-geometry.js';
+import { buildToolpath, SimView } from './cnc-sim.js';
 import { MACHINE, PRICING, GROUPS, TOOLS, MATERIALS, DEFAULT_MATERIAL, DEFAULT_THICKNESS } from './cnc-materials.js';
 
 /* ======================================================================
@@ -42,7 +43,7 @@ function partFeatures(part) {
     const closedLen = geo.features.reduce((s, f) => s + f.perimeter, 0);
     const openLen = Math.max(0, geo.lengthMm - closedLen);
     // Atvērtās līnijas (nav slēgtas cilpas) griež ar pamata frēzi
-    return openLen > 1 ? geo.features.concat([{ perimeter: openLen, width: Infinity, round: false, inner: false }]) : geo.features;
+    return openLen > 1 ? geo.features.concat([{ perimeter: openLen, width: Infinity, round: false, inner: false, open: true }]) : geo.features;
   }
   if (part.kind === 'mesh' && geo.features && geo.features.length) return geo.features;
   const n = Math.max(1, geo.contours);
@@ -287,7 +288,11 @@ new ResizeObserver(resize).observe(viewerEl);
 resize();
 
 let fly = null;
+let lastFrame = 0;
 renderer.setAnimationLoop((time) => {
+  const dt = lastFrame ? Math.min(0.25, (time - lastFrame) / 1000) : 0;
+  lastFrame = time;
+  if (sim && sim.playing) { sim.update(dt); renderSimUi(); }
   if (fly) {
     const t = Math.min(1, (time - fly.start) / 380);
     const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -324,7 +329,7 @@ function buildPartObject(part) {
   const t = part.thickness;
   const geo = part.geo;
   const mat = findMaterial(part.materialId);
-  const lines = viewMode === 'lines';
+  const lines = viewMode !== 'material';
   const materials = lines ? plainMaterial : getPartMaterials(mat.id, mat.group, t);
 
   let solid = null;
@@ -399,13 +404,80 @@ function buildPartObject(part) {
   return group;
 }
 
+/* ----- Frēzēšanas simulācija (izstrādātājam) ----- */
+let sim = null;
+const simEl = $('cc-sim');
+const simPlay = $('cc-sim-play');
+const simSpeed = $('cc-sim-speed');
+const simSeek = $('cc-sim-seek');
+const simTime = $('cc-sim-time');
+const simOp = $('cc-sim-op');
+const simNote = $('cc-sim-note');
+const fmtClock = (s) => {
+  s = Math.round(s);
+  const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, sec = String(s % 60).padStart(2, '0');
+  return h ? h + ':' + String(m).padStart(2, '0') + ':' + sec : m + ':' + sec;
+};
+
+function attachSim(part) {
+  if (sim) { sim.dispose(); sim = null; }
+  const on = viewMode === 'sim';
+  simEl.hidden = !on;
+  viewerEl.classList.toggle('cc-sim-on', on);
+  if (!on) return;
+  const e = estimatePart(part);
+  const path = buildToolpath(part, { g: GROUPS[e.mat.group], features: partFeatures(part), planFeature, toolParams, est: e });
+  if (!path) {
+    simTime.textContent = ''; simOp.textContent = 'Simulācija pieejama DXF un izmēru detaļām.'; simNote.textContent = '';
+    return;
+  }
+  sim = new SimView(path);
+  sim.speed = Number(simSpeed.value);
+  const geo = part.geo;
+  const minX = geo.bounds ? geo.bounds.minX : 0, minY = geo.bounds ? geo.bounds.minY : 0;
+  sim.group.position.set(-(minX + geo.sizeX / 2), -(minY + geo.sizeY / 2), -part.thickness / 2);
+  modelGroup.add(sim.group);
+  const diff = path.total - path.modelS;
+  simNote.textContent = '1 gab. · iekārta ' + fmtClock(path.machineEnd) + ' + roku darbs ' + fmtClock(path.total - path.machineEnd) +
+    ' · aprēķinā ' + fmtClock(path.modelS) + ' (' + (diff >= 0 ? '+' : '−') + fmtClock(Math.abs(diff)) +
+    ': pārbraucieni ' + fmtClock(path.rapidS) + ', aprēķinā ' + fmtClock(path.modelRapidS) + ')';
+  renderSimUi();
+}
+
+function renderSimUi() {
+  if (!sim) return;
+  simTime.textContent = fmtClock(sim.time) + ' / ' + fmtClock(sim.path.total);
+  simSeek.value = String(Math.round(sim.time / sim.path.total * 1000));
+  const op = sim.opAt(sim.time);
+  simOp.textContent = sim.time >= sim.path.total ? 'Pabeigts' : op ? op.label : '';
+  simPlay.textContent = sim.playing ? 'Pauze' : sim.time > 0 && sim.time < sim.path.total ? 'Turpināt' : 'Sākt';
+}
+
+simPlay.addEventListener('click', () => {
+  if (!sim) return;
+  if (sim.time >= sim.path.total) sim.seek(0);
+  sim.playing = !sim.playing;
+  renderSimUi();
+});
+$('cc-sim-restart').addEventListener('click', () => { if (sim) { sim.seek(0); renderSimUi(); } });
+simSpeed.addEventListener('change', () => { if (sim) sim.speed = Number(simSpeed.value); });
+simSeek.addEventListener('input', () => { if (sim) { sim.seek(Number(simSeek.value) / 1000 * sim.path.total); renderSimUi(); } });
+
+function setViewMode(mode) {
+  viewMode = mode;
+  document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));
+  showModel(getActive(), false);
+}
+
 function showModel(part, refit) {
+  if (sim) { sim.dispose(); sim = null; }
   if (modelGroup) { scene.remove(modelGroup); disposeGroup(modelGroup); modelGroup = null; }
-  if (!part) { hintEl.hidden = false; dimsEl.textContent = ''; return; }
+  if (!part) { hintEl.hidden = false; dimsEl.textContent = ''; simEl.hidden = true; return; }
   hintEl.hidden = true;
   dimsEl.textContent = fmtDims(part);
   modelGroup = buildPartObject(part);
   scene.add(modelGroup);
+  attachSim(part);
   if (refit) {
     const r = Math.max(part.geo.sizeX, part.geo.sizeY, part.thickness) * 0.75;
     const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.9;
@@ -998,6 +1070,7 @@ document.addEventListener('keydown', (ev) => {
   try { DEV_MODE ? localStorage.setItem(DEV_KEY, '1') : localStorage.removeItem(DEV_KEY); } catch (e) { /* privātais režīms */ }
   SHOW_PRICES = PRICING.showPrices !== false || DEV_MODE;
   applyPriceVisibility();
+  if (!DEV_MODE && viewMode === 'sim') setViewMode('material');
 });
 
 function bindDrop(zone, input) {
@@ -1025,15 +1098,12 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !orderMo
 // Skata režīms: materiāls / kontūras
 document.querySelectorAll('[data-view]').forEach((btn) => {
   btn.addEventListener('click', () => {
-    if (viewMode === btn.dataset.view) return;
-    viewMode = btn.dataset.view;
-    document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-    showModel(getActive(), false);
+    if (viewMode !== btn.dataset.view) setViewMode(btn.dataset.view);
   });
 });
 
 // Testiem un atkļūdošanai
-window.__cncCalc = { get parts() { return parts; }, estimatePart, estimateOrder, loadFiles };
+window.__cncCalc = { get parts() { return parts; }, get sim() { return sim; }, estimatePart, estimateOrder, loadFiles };
 
 updateUploadStatus();
 renderPrice();

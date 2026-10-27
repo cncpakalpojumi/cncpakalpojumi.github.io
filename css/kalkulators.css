@@ -272,3 +272,17 @@ textarea.cc-input { height: auto; min-height: 5.5rem; padding: 0.7rem 0.85rem; r
 .cc-dev { margin-top: var(--space-3); padding-top: var(--space-2); border-top: 1px dashed var(--line); }
 .cc-dev summary { cursor: pointer; font-size: 0.75rem; font-weight: 600; color: var(--accent-deep); }
 .cc-dev .cc-sum-row { padding: 0.15rem 0; font-size: 0.75rem; }
+
+/* Izstrādātāja frēzēšanas simulācija */
+:root:not(.cc-dev-mode) .cc-dev-only { display: none; }
+.cc-sim { position: absolute; left: var(--space-4); bottom: var(--space-4); z-index: 2; width: min(34rem, calc(100% - 2 * var(--space-4) - 100px)); padding: var(--space-3); background: rgba(255, 255, 255, 0.94); border: 1px solid var(--line); font-size: 0.8rem; }
+.cc-sim[hidden] { display: none; }
+.cc-sim-row { display: flex; align-items: center; gap: var(--space-2); }
+.cc-sim-btn { height: 2rem; min-width: 2.2rem; padding: 0 0.75rem; background: var(--ink); color: var(--on-dark); font-family: var(--font-display); font-weight: 600; }
+#cc-sim-restart { background: transparent; color: var(--text); border: 1px solid var(--line); }
+#cc-sim-speed { height: 2rem; padding: 0 0.4rem; border: 1px solid var(--line); background: #fff; font: inherit; }
+.cc-sim-time { margin-left: auto; font-family: var(--font-mono, monospace); font-weight: 600; font-variant-numeric: tabular-nums; }
+#cc-sim-seek { width: 100%; margin: var(--space-2) 0 0.2rem; accent-color: var(--accent); }
+.cc-sim-op { font-weight: 600; color: var(--text); }
+.cc-sim-note { margin-top: 0.15rem; color: var(--muted); }
+.cc-sim-on .cc-viewer-help { display: none; }

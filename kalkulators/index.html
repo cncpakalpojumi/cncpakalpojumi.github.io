@@ -130,6 +130,25 @@
             <div class="cc-view-toggle" role="group" aria-label="Skata režīms">
               <button type="button" data-view="material" aria-pressed="true">Materiāls</button>
               <button type="button" data-view="lines" aria-pressed="false">Kontūras</button>
+              <button type="button" data-view="sim" aria-pressed="false" class="cc-dev-only">Simulācija</button>
+            </div>
+            <div class="cc-sim cc-dev-only" id="cc-sim" hidden>
+              <div class="cc-sim-row">
+                <button type="button" class="cc-sim-btn" id="cc-sim-play">Sākt</button>
+                <button type="button" class="cc-sim-btn" id="cc-sim-restart" aria-label="No sākuma">↺</button>
+                <select id="cc-sim-speed" aria-label="Ātrums">
+                  <option value="1" selected>1× (reāllaiks)</option>
+                  <option value="2">2×</option>
+                  <option value="5">5×</option>
+                  <option value="10">10×</option>
+                  <option value="30">30×</option>
+                  <option value="100">100×</option>
+                </select>
+                <span class="cc-sim-time" id="cc-sim-time">0:00 / 0:00</span>
+              </div>
+              <input type="range" id="cc-sim-seek" min="0" max="1000" value="0" aria-label="Laiks">
+              <p class="cc-sim-op" id="cc-sim-op"></p>
+              <p class="cc-sim-note" id="cc-sim-note"></p>
             </div>
             <p class="cc-viewer-help">Vilkt – pagriezt · labā poga – pārvietot · ritenītis – tuvināt</p>
           </div>
