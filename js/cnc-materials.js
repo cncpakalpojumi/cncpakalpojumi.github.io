@@ -23,6 +23,13 @@ export const MACHINE = {
   leadInMm: 8,          // ieeja/izeja katrai kontūrai
   retractMm: 10,        // Z pacelšana starp gājieniem
   handlingMin: 0.5,     // detaļas noņemšana un notīrīšana, min/gab.
+  finishPassMinT: 12,   // mm — no šī biezuma frēzētajām kontūrām pieskaita apdares gājienu pa visu dziļumu
+  tabMaxSideMm: 100,    // detaļai ar īsāko malu zem šī vai laukumu zem tabMaxAreaM2 vakuums neturēs – vajag tiltiņus
+  tabMaxAreaM2: 0.03,
+  tabSpacingMm: 300,    // viens tiltiņš uz katriem 300 mm ārējās kontūras, vismaz 2
+  tabMachineS: 1,       // s katram tiltiņam pēdējā gājienā (Z pacelšana un nolaišana)
+  tabRemoveMin: 0.15,   // min tiltiņa nogriešana un noslīpēšana ar roku …
+  tabRemovePerMm: 0.01, // … + min par katru biezuma mm
   partSpacingMm: 12     // attālums starp detaļām loksnē (8 mm frēze + rezerve)
 };
 

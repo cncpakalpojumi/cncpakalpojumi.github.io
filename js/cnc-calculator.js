@@ -73,8 +73,9 @@ function machineMinutes(part) {
   const depth = t + MACHINE.throughCutMm;
   const zMove = 2 * (t + MACHINE.safeZMm) / MACHINE.zRapidFeed;
 
-  let cut = 0, plunge = 0, overhead = 0, drill = 0;
-  let basePasses = 0, drilled = 0, smallMilled = 0, unmachinable = 0;
+  let cut = 0, plunge = 0, overhead = 0, drill = 0, finishPass = 0, tabs = 0;
+  let basePasses = 0, drilled = 0, smallMilled = 0, unmachinable = 0, tabCount = 0, outerLen = 0;
+  const withFinish = t >= MACHINE.finishPassMinT;
   const tools = new Set();
   const features = partFeatures(part);
 
@@ -98,8 +99,18 @@ function machineMinutes(part) {
     cut += (pathLen + MACHINE.leadInMm) * passes / v;
     plunge += depth / tp.plunge;
     overhead += (MACHINE.contourOverheadS + passes * MACHINE.passOverheadS) / 60 + zMove;
+    // Biezā materiālā malu nobeidz ar vienu gājienu pa visu dziļumu
+    if (withFinish) finishPass += (pathLen + MACHINE.leadInMm) / v / MACHINE.efficiency + MACHINE.passOverheadS / 60 + zMove;
+    if (!f.inner) outerLen += f.perimeter;
     if (plan.tool.d !== g.baseTool) { smallMilled++; tools.add('frēze Ø' + fmtNum(plan.tool.d, 1)); }
     if (!f.inner) basePasses = Math.max(basePasses, passes);
+  }
+
+  // Mazas detaļas vakuums neturēs: atstāj tiltiņus, kurus pēc tam nogriež un noslīpē ar roku
+  const smallPart = Math.min(geo.sizeX, geo.sizeY) < MACHINE.tabMaxSideMm || geo.sizeX * geo.sizeY / 1e6 < MACHINE.tabMaxAreaM2;
+  if (smallPart && outerLen > 0) {
+    tabCount = Math.max(2, Math.ceil(outerLen / MACHINE.tabSpacingMm));
+    tabs = tabCount * (MACHINE.tabMachineS / 60 + MACHINE.tabRemoveMin + MACHINE.tabRemovePerMm * t);
   }
 
   const n = Math.max(1, features.length);
@@ -118,13 +129,13 @@ function machineMinutes(part) {
     tools.add('frēze Ø12'); tools.add('lodveida Ø6');
   }
 
-  const total = cut / MACHINE.efficiency + plunge + overhead + drill + rapid + rough + finish + MACHINE.handlingMin;
+  const total = cut / MACHINE.efficiency + plunge + overhead + finishPass + drill + tabs + rapid + rough + finish + MACHINE.handlingMin;
   const toolChangeMin = tools.size * MACHINE.toolChangeS / 60;
   return {
     total, toolChangeMin,
     passes: basePasses || Math.max(1, Math.ceil(depth / g.ap)),
-    parts: { cut: cut / MACHINE.efficiency, plunge, overhead, rapid, drill, rough, finish },
-    stats: { contours: features.length, drilled, smallMilled, unmachinable, tools: Array.from(tools) }
+    parts: { cut: cut / MACHINE.efficiency, plunge, overhead, finishPass, rapid, drill, tabs, rough, finish },
+    stats: { contours: features.length, drilled, smallMilled, unmachinable, tabCount, tools: Array.from(tools) }
   };
 }
 
@@ -708,6 +719,8 @@ function devBreakdown(part, e) {
     row('Griešana (÷ ' + fmtNum(MACHINE.efficiency, 2) + ')', min(e.time.cut)) +
     row('Iegremdēšana', min(e.time.plunge)) +
     row('Kontūru un gājienu pārejas', min(e.time.overhead)) +
+    row('Apdares gājiens (no ' + MACHINE.finishPassMinT + ' mm)', min(e.time.finishPass)) +
+    row('Tiltiņi (' + st.tabCount + ' gab., ar roku)', min(e.time.tabs)) +
     row('Pārbraucieni', min(e.time.rapid)) +
     row('Urbšana', min(e.time.drill)) +
     row('Rupjā 3D', min(e.time.rough)) +
