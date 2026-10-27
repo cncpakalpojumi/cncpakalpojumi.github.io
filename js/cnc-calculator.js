@@ -6,8 +6,8 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { getPartMaterials, texturedGeometry } from './cnc-textures.js';
-import { parseDxf, dxfLoops, orientTriangles, thinnestAxis, analyzeMesh, readStepTriangles } from './cnc-geometry.js';
-import { MACHINE, PRICING, GROUPS, MATERIALS, DEFAULT_MATERIAL, DEFAULT_THICKNESS } from './cnc-materials.js';
+import { parseDxf, dxfLoops, dxfFeatures, orientTriangles, thinnestAxis, analyzeMesh, readStepTriangles } from './cnc-geometry.js';
+import { MACHINE, PRICING, GROUPS, TOOLS, MATERIALS, DEFAULT_MATERIAL, DEFAULT_THICKNESS } from './cnc-materials.js';
 
 /* ======================================================================
    Aprēķins
@@ -27,45 +27,120 @@ function fitsWorkArea(x, y) {
   return a <= MACHINE.bedX && b <= MACHINE.bedY;
 }
 
-// Mašīnlaiks vienam gabalam, minūtēs
+// Frēzes režīms konkrētam diametram (mazākām frēzēm – seklāk un lēnāk)
+function toolParams(g, d) {
+  const k = d / g.baseTool;
+  return { d, ap: Math.max(0.1, g.ap * k), feed: g.feed * Math.sqrt(k), plunge: g.plunge * Math.sqrt(k) };
+}
+
+// Kontūru elementi: ārējā kontūra, caurumi, spraugas
+function partFeatures(part) {
+  const geo = part.geo;
+  if (part.kind === 'dxf') {
+    if (!geo.loops) geo.loops = dxfLoops(geo.paths);
+    if (!geo.features) geo.features = dxfFeatures(geo.loops);
+    const closedLen = geo.features.reduce((s, f) => s + f.perimeter, 0);
+    const openLen = Math.max(0, geo.lengthMm - closedLen);
+    // Atvērtās līnijas (nav slēgtas cilpas) griež ar pamata frēzi
+    return openLen > 1 ? geo.features.concat([{ perimeter: openLen, width: Infinity, round: false, inner: false }]) : geo.features;
+  }
+  if (part.kind === 'mesh' && geo.features && geo.features.length) return geo.features;
+  const n = Math.max(1, geo.contours);
+  return Array.from({ length: n }, (_, i) => ({ perimeter: geo.lengthMm / n, width: Infinity, round: false, inner: i > 0 }));
+}
+
+// Kā apstrādāt elementu: pamata frēze, mazāka frēze vai urbis
+function planFeature(f, g, depth) {
+  const base = TOOLS.endmills.find((m) => m.d === g.baseTool) || TOOLS.endmills[0];
+  const fits = (d) => d <= TOOLS.toolFit * f.width;
+  if (!f.inner || fits(base.d)) return { kind: 'mill', tool: base, ok: base.flute >= depth };
+  if (f.round && f.width >= TOOLS.drillMinD && f.width <= TOOLS.drillMaxD && depth <= TOOLS.drillDepthFactor * f.width) {
+    return { kind: 'drill', d: Math.round(f.width * 10) / 10, ok: true };
+  }
+  const candidates = TOOLS.endmills.filter((m) => fits(m.d)).sort((x, y) => y.d - x.d);
+  const good = candidates.find((m) => m.flute >= depth);
+  if (good) return { kind: 'mill', tool: good, ok: true };
+  const smallest = TOOLS.endmills.reduce((x, y) => (y.d < x.d ? y : x));
+  return { kind: 'mill', tool: candidates[0] || smallest, ok: false };
+}
+
+// Mašīnlaiks vienam gabalam (min) un vienreizējais instrumentu maiņas laiks rindai
 function machineMinutes(part) {
   const mat = findMaterial(part.materialId);
   const g = GROUPS[mat.group];
   const t = part.thickness;
   const geo = part.geo;
-  const passes = Math.max(1, Math.ceil((t + MACHINE.throughCutMm) / g.ap));
-  const contours = Math.max(1, geo.contours);
-  const travelPerContour = Math.sqrt(Math.max(1, geo.sizeX * geo.sizeY) / contours);
+  const depth = t + MACHINE.throughCutMm;
+  const zMove = 2 * (t + MACHINE.safeZMm) / MACHINE.zRapidFeed;
 
-  const cut = (geo.lengthMm + contours * MACHINE.leadInMm) * passes / g.feed;
-  const plunge = contours * (t + MACHINE.throughCutMm) / g.plunge;
-  const rapid = (contours * passes * MACHINE.retractMm * 2 + contours * travelPerContour) / MACHINE.rapidFeed;
+  let cut = 0, plunge = 0, overhead = 0, drill = 0;
+  let basePasses = 0, drilled = 0, smallMilled = 0, unmachinable = 0;
+  const tools = new Set();
+  const features = partFeatures(part);
+
+  for (const f of features) {
+    const plan = planFeature(f, g, depth);
+    if (!plan.ok) unmachinable++;
+    if (plan.kind === 'drill') {
+      const dDepth = t + 1;
+      const pecks = Math.max(0, Math.ceil(dDepth / (3 * plan.d)) - 1);
+      drill += MACHINE.drillApproachS / 60 + dDepth / g.drillFeed + pecks * MACHINE.peckS / 60 + zMove;
+      drilled++;
+      tools.add('urbis Ø' + fmtNum(plan.d, 1));
+      continue;
+    }
+    const tp = toolParams(g, plan.tool.d);
+    const passes = Math.max(1, Math.ceil(depth / tp.ap));
+    // Frēzes centra ceļš caurumā ir īsāks; mazos lokos ātrumu ierobežo paātrinājums
+    const pathLen = f.round && f.inner ? Math.max(0.5, Math.PI * (f.width - tp.d)) : f.perimeter;
+    const pathR = f.round && f.inner ? Math.max(0.2, (f.width - tp.d) / 2) : f.inner ? Math.max(0.5, f.perimeter / (2 * Math.PI)) : Infinity;
+    const v = Math.min(tp.feed, Math.sqrt(MACHINE.accel * pathR) * 60);
+    cut += (pathLen + MACHINE.leadInMm) * passes / v;
+    plunge += depth / tp.plunge;
+    overhead += (MACHINE.contourOverheadS + passes * MACHINE.passOverheadS) / 60 + zMove;
+    if (plan.tool.d !== g.baseTool) { smallMilled++; tools.add('frēze Ø' + fmtNum(plan.tool.d, 1)); }
+    if (!f.inner) basePasses = Math.max(basePasses, passes);
+  }
+
+  const n = Math.max(1, features.length);
+  const rapid = n * Math.sqrt(Math.max(1, geo.sizeX * geo.sizeY) / n) / MACHINE.rapidFeed;
 
   let rough = 0, finish = 0;
   if (geo.kind === '3d') {
     const pocketMm3 = Math.max(0, geo.projAreaMm2 * t - geo.volumeMm3);
     rough = pocketMm3 / (g.roughFeed * g.roughAp * g.roughAe);
     finish = geo.finishAreaMm2 / g.stepover / g.finishFeed;
+    if (rough > 0) tools.add('frēze Ø12');
+    if (finish > 0) tools.add('lodveida Ø6');
   } else if (geo.reliefAreaMm2) {
     rough = geo.reliefAreaMm2 * g.reliefDepthMm / (g.roughFeed * g.roughAp * g.roughAe);
     finish = geo.reliefAreaMm2 / g.stepover / g.finishFeed;
+    tools.add('frēze Ø12'); tools.add('lodveida Ø6');
   }
 
-  const total = (cut + plunge + rapid + rough + finish) / MACHINE.efficiency + MACHINE.handlingMin;
-  return { total, passes, cut: cut + plunge + rapid, mill: rough + finish, parts: { cut, plunge, rapid, rough, finish } };
+  const total = cut / MACHINE.efficiency + plunge + overhead + drill + rapid + rough + finish + MACHINE.handlingMin;
+  const toolChangeMin = tools.size * MACHINE.toolChangeS / 60;
+  return {
+    total, toolChangeMin,
+    passes: basePasses || Math.max(1, Math.ceil(depth / g.ap)),
+    parts: { cut: cut / MACHINE.efficiency, plunge, overhead, rapid, drill, rough, finish },
+    stats: { contours: features.length, drilled, smallMilled, unmachinable, tools: Array.from(tools) }
+  };
 }
 
 function estimatePart(part) {
   const mat = findMaterial(part.materialId);
   const time = machineMinutes(part);
   const machineCost = time.total / 60 * PRICING.hourlyRate;
+  const toolChangeCost = time.toolChangeMin / 60 * PRICING.hourlyRate;   // vienreiz uz rindu, ne uz gabalu
   const blankM2 = (part.geo.sizeX + MACHINE.partSpacingMm) * (part.geo.sizeY + MACHINE.partSpacingMm) / 1e6;
   const eurM2 = priceForThickness(mat, part.thickness);
   const materialCost = part.ownMaterial ? 0 : blankM2 * eurM2 * PRICING.materialWaste;
   const unit = machineCost + materialCost;
   return {
-    unit, total: unit * part.quantity, machineCost, materialCost,
-    minutes: time.total, passes: time.passes, time: time.parts, blankM2, eurM2, mat
+    unit, total: unit * part.quantity + toolChangeCost, machineCost, materialCost, toolChangeCost,
+    minutes: time.total, toolChangeMin: time.toolChangeMin, passes: time.passes, time: time.parts, stats: time.stats,
+    blankM2, eurM2, mat
   };
 }
 
@@ -567,6 +642,11 @@ function partWarnings(part) {
     }
     if (mat.group === 'acp' && part.geo.finishAreaMm2 > 0) w.push('Kompozītpaneļos 3D reljefu nefrēzējam. Lūdzu, izvēlieties citu materiālu.');
   }
+  const st = machineMinutes(part).stats;
+  if (st.unmachinable) {
+    w.push(st.unmachinable + (st.unmachinable === 1 ? ' caurums vai sprauga ir par šauru' : ' caurumi vai spraugas ir par šauriem') +
+      ' frēzēšanai ' + fmtNum(part.thickness, part.thickness % 1 ? 1 : 0) + ' mm biezumā. Izpildi un cenu precizēsim pēc faila pārbaudes.');
+  }
   return w;
 }
 
@@ -617,17 +697,24 @@ function devBreakdown(part, e) {
   const g = GROUPS[e.mat.group];
   const row = (k, v) => '<div class="cc-sum-row"><span>' + k + '</span><strong>' + v + '</strong></div>';
   const min = (v) => fmtNum(v, 2) + ' min';
+  const st = e.stats;
   return '<details class="cc-dev" open><summary>Aprēķins (izstrādātājam)</summary>' +
-    row('Režīms', 'feed ' + g.feed + ' · ap ' + fmtNum(g.ap, 1) + ' · plunge ' + g.plunge) +
-    row('Gājieni', e.passes) +
-    row('Kontūras', part.geo.contours) +
-    row('Griešana', min(e.time.cut)) +
+    row('Pamata frēze', 'Ø' + g.baseTool + ' · feed ' + g.feed + ' · ap ' + fmtNum(g.ap, 1)) +
+    row('Gājieni (ārējā kontūra)', e.passes) +
+    row('Kontūras / urbumi', st.contours + ' / ' + st.drilled) +
+    row('Ar mazāku frēzi', st.smallMilled) +
+    (st.unmachinable ? row('Neizpildāmi šajā biezumā', st.unmachinable) : '') +
+    row('Papildu instrumenti', st.tools.length ? st.tools.join(', ') : '–') +
+    row('Griešana (÷ ' + fmtNum(MACHINE.efficiency, 2) + ')', min(e.time.cut)) +
     row('Iegremdēšana', min(e.time.plunge)) +
-    row('Tukšgaita', min(e.time.rapid)) +
+    row('Kontūru un gājienu pārejas', min(e.time.overhead)) +
+    row('Pārbraucieni', min(e.time.rapid)) +
+    row('Urbšana', min(e.time.drill)) +
     row('Rupjā 3D', min(e.time.rough)) +
     row('3D apdare', min(e.time.finish)) +
-    row('÷ ' + fmtNum(MACHINE.efficiency, 2) + ' + ' + fmtNum(MACHINE.handlingMin, 1) + ' min', min(e.minutes)) +
+    row('+ noņemšana ' + fmtNum(MACHINE.handlingMin, 1) + ' min', min(e.minutes)) +
     row('Mašīnlaiks × ' + PRICING.hourlyRate + ' €/h', fmtEur(e.machineCost)) +
+    row('Instrumentu maiņa (rindai)', min(e.toolChangeMin) + ' · ' + fmtEur(e.toolChangeCost)) +
     row('Sagatave', fmtNum(e.blankM2, 4) + ' m²') +
     row('Loksne', fmtNum(e.eurM2, 2) + ' €/m² × ' + fmtNum(PRICING.materialWaste, 2)) +
     row('Materiāls', part.ownMaterial ? 'klienta' : fmtEur(e.materialCost)) +

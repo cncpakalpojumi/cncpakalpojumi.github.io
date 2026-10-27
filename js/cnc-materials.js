@@ -10,12 +10,34 @@ export const MACHINE = {
   bedY: 1300,
   zTravel: 300,
   rapidFeed: 15000,     // mm/min — vidējais reālais tukšgaitas ātrums ar paātrinājumu (maks. 25 000)
-  efficiency: 0.85,     // servopiedziņa: stūri un paātrinājums – reālais laiks ≈ teorētiskais ÷ 0,85
+  zRapidFeed: 5000,     // mm/min — Z ass pacelšana un nolaišana
+  accel: 600,           // mm/s² — pieņemtais griešanas paātrinājums; ierobežo ātrumu mazos lokos (v = √(a·r))
+  efficiency: 0.9,      // stūri uz taisniem posmiem – reālais laiks ≈ teorētiskais ÷ 0,9
+  contourOverheadS: 1.5,// s katrai kontūrai: bremzēšana, pārbrauciens, pieeja
+  passOverheadS: 0.5,   // s katram gājienam: nolaišana nākamajā dziļumā, paātrināšanās
+  safeZMm: 5,           // drošais augstums virs materiāla
+  toolChangeS: 20,      // s viena automātiskā instrumenta maiņa (vienreiz uz detaļu rindu)
+  drillApproachS: 1,    // s urbuma pieeja un izeja
+  peckS: 0.4,           // s viena urbja izcelšana skaidu izvadīšanai
   throughCutMm: 0.5,    // griezums 0,5 mm dziļāk par materiālu
   leadInMm: 8,          // ieeja/izeja katrai kontūrai
   retractMm: 10,        // Z pacelšana starp gājieniem
   handlingMin: 0.5,     // detaļas noņemšana un notīrīšana, min/gab.
   partSpacingMm: 12     // attālums starp detaļām loksnē (8 mm frēze + rezerve)
+};
+
+// Instrumenti. Frēzes: diametrs d un griezējdaļas garums flute (maks. griešanas dziļums), mm.
+// Urbjus izmanto apaļiem caurumiem līdz drillMaxD, ja biezums ≤ drillDepthFactor × d.
+// toolFit: frēzes diametrs ≤ toolFit × cauruma vai spraugas platums.
+export const TOOLS = {
+  endmills: [
+    { d: 8, flute: 32 }, { d: 6, flute: 22 }, { d: 4, flute: 16 },
+    { d: 3, flute: 12 }, { d: 2, flute: 8 }, { d: 1.5, flute: 6 }
+  ],
+  drillMinD: 1,
+  drillMaxD: 13,
+  drillDepthFactor: 10,
+  toolFit: 0.8
 };
 
 export const PRICING = {
@@ -36,15 +58,17 @@ export const PRICING = {
 // feed – kontūras griešana mm/min · ap – dziļums vienā gājienā mm · plunge – iegremdēšana mm/min
 // rough* – rupjā frēzēšana (noņemšanas ātrums = feed × ap × ae) · finishFeed / stepover – 3D apdare
 // reliefDepthMm – vidējais reljefa dziļums, ja izmērus ievada manuāli
+// baseTool – frēze, kurai dotas feed/ap/plunge; mazākām frēzēm: ap × d/baseTool, feed un plunge × √(d/baseTool)
+// drillFeed – urbšanas padeve, mm/min
 export const GROUPS = {
-  mdf:      { label: 'MDF',                     feed: 5000, ap: 8,   plunge: 1500, roughFeed: 4000, roughAp: 5,   roughAe: 6, finishFeed: 6000, stepover: 0.5,  reliefDepthMm: 4 },
-  plywood:  { label: 'Saplāksnis',              feed: 4500, ap: 7,   plunge: 1500, roughFeed: 4000, roughAp: 4,   roughAe: 6, finishFeed: 5500, stepover: 0.5,  reliefDepthMm: 3 },
-  wood:     { label: 'Masīvkoks',               feed: 4500, ap: 7,   plunge: 1500, roughFeed: 3500, roughAp: 4,   roughAe: 6, finishFeed: 5500, stepover: 0.5,  reliefDepthMm: 4 },
-  acrylic:  { label: 'Akrils (PMMA)',           feed: 3000, ap: 4,   plunge: 800,  roughFeed: 3000, roughAp: 3,   roughAe: 4, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 2 },
-  pvc:      { label: 'PVC putuplasts',          feed: 6000, ap: 8,   plunge: 2000, roughFeed: 6000, roughAp: 6,   roughAe: 6, finishFeed: 7000, stepover: 0.5,  reliefDepthMm: 3 },
-  hdpe:     { label: 'Polietilēns (HDPE)',      feed: 3500, ap: 5,   plunge: 1000, roughFeed: 3500, roughAp: 4,   roughAe: 5, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 3 },
-  acp:      { label: 'Alumīnija kompozīts',     feed: 4500, ap: 3.5, plunge: 1500, roughFeed: 3500, roughAp: 2,   roughAe: 4, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 1 },
-  aluminum: { label: 'Alumīnijs',               feed: 1500, ap: 1,   plunge: 300,  roughFeed: 1500, roughAp: 1,   roughAe: 3, finishFeed: 2000, stepover: 0.25, reliefDepthMm: 1 }
+  mdf:      { label: 'MDF',                     feed: 5000, ap: 8,   plunge: 1500, roughFeed: 4000, roughAp: 5,   roughAe: 6, finishFeed: 6000, stepover: 0.5,  reliefDepthMm: 4, baseTool: 8, drillFeed: 1200 },
+  plywood:  { label: 'Saplāksnis',              feed: 4500, ap: 7,   plunge: 1500, roughFeed: 4000, roughAp: 4,   roughAe: 6, finishFeed: 5500, stepover: 0.5,  reliefDepthMm: 3, baseTool: 8, drillFeed: 1000 },
+  wood:     { label: 'Masīvkoks',               feed: 4500, ap: 7,   plunge: 1500, roughFeed: 3500, roughAp: 4,   roughAe: 6, finishFeed: 5500, stepover: 0.5,  reliefDepthMm: 4, baseTool: 8, drillFeed: 1000 },
+  acrylic:  { label: 'Akrils (PMMA)',           feed: 3000, ap: 4,   plunge: 800,  roughFeed: 3000, roughAp: 3,   roughAe: 4, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 2, baseTool: 6, drillFeed: 400 },
+  pvc:      { label: 'PVC putuplasts',          feed: 6000, ap: 8,   plunge: 2000, roughFeed: 6000, roughAp: 6,   roughAe: 6, finishFeed: 7000, stepover: 0.5,  reliefDepthMm: 3, baseTool: 8, drillFeed: 1500 },
+  hdpe:     { label: 'Polietilēns (HDPE)',      feed: 3500, ap: 5,   plunge: 1000, roughFeed: 3500, roughAp: 4,   roughAe: 5, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 3, baseTool: 8, drillFeed: 800 },
+  acp:      { label: 'Alumīnija kompozīts',     feed: 4500, ap: 3.5, plunge: 1500, roughFeed: 3500, roughAp: 2,   roughAe: 4, finishFeed: 4000, stepover: 0.4,  reliefDepthMm: 1, baseTool: 8, drillFeed: 600 },
+  aluminum: { label: 'Alumīnijs',               feed: 1500, ap: 1,   plunge: 300,  roughFeed: 1500, roughAp: 1,   roughAe: 3, finishFeed: 2000, stepover: 0.25, reliefDepthMm: 1, baseTool: 6, drillFeed: 250 }
 };
 
 // sheets: [{ t: biezums mm, eurM2: cena €/m² bez PVN }]

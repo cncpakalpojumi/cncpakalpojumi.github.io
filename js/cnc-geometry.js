@@ -27,7 +27,8 @@ function makeUnionFind() {
       const roots = new Set();
       parent.forEach((_, k) => roots.add(find(k)));
       return roots.size;
-    }
+    },
+    root(p) { return find(add(key(p))); }
   };
 }
 
@@ -66,11 +67,12 @@ export function parseDxf(text) {
     if (pairs[idx].code === 0) {
       const type = pairs[idx].value.trim().toUpperCase();
       if (type === 'ENDSEC' || type === 'SECTION') break;
-      const ent = { type, codes: {} };
+      const ent = { type, codes: {}, seq: [] };
       idx++;
       while (idx < pairs.length && pairs[idx].code !== 0) {
         const c = pairs[idx].code;
         (ent.codes[c] = ent.codes[c] || []).push(pairs[idx].value);
+        ent.seq.push([c, pairs[idx].value]);
         idx++;
       }
       entities.push(ent);
@@ -143,11 +145,15 @@ export function parseDxf(text) {
         paths.push({ pts: sampleArc(first(ent, 10), first(ent, 20), first(ent, 40), first(ent, 50), first(ent, 51)), closed: false });
         break;
       case 'LWPOLYLINE': {
-        const xs = ent.codes[10] || [], ys = ent.codes[20] || [];
-        const pts = [];
-        for (let i = 0; i < Math.min(xs.length, ys.length); i++) pts.push([num(xs[i]), num(ys[i])]);
+        // Kods 42 (bulge) ir tikai pie virsotnēm ar loku – jāpiesaista iepriekšējai virsotnei pēc secības
+        const pts = [], bulges = [];
+        for (const [c, v] of ent.seq) {
+          if (c === 10) { pts.push([num(v), 0]); bulges.push(0); }
+          else if (c === 20 && pts.length) pts[pts.length - 1][1] = num(v);
+          else if (c === 42 && pts.length) bulges[bulges.length - 1] = num(v);
+        }
         const closed = (first(ent, 70) & 1) !== 0;
-        if (pts.length > 1) paths.push({ pts: bulgePoly(pts, ent.codes[42] || [], closed), closed });
+        if (pts.length > 1) paths.push({ pts: bulgePoly(pts, bulges, closed), closed });
         break;
       }
       case 'POLYLINE': {
@@ -302,6 +308,33 @@ export function dxfLoops(paths, tol = 0.1) {
 }
 
 /* ======================================================================
+   Kontūru elementi frēzes izvēlei
+   { perimeter, width, round, inner } – width ir cauruma diametrs vai spraugas platums
+   ====================================================================== */
+function featureFrom(perimeter, bw, bh, inner) {
+  const minDim = Math.min(bw, bh);
+  const round = minDim > 0 && Math.abs(bw - bh) <= 0.06 * Math.max(bw, bh) &&
+    Math.abs(perimeter - Math.PI * (bw + bh) / 2) <= 0.06 * perimeter;
+  return { perimeter, width: minDim, round, inner };
+}
+
+export function dxfFeatures(loops) {
+  return loops.map((l) => {
+    let p = 0, minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let i = 0; i < l.pts.length; i++) {
+      const a = l.pts[i], b = l.pts[(i + 1) % l.pts.length];
+      p += Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (a[0] < minX) minX = a[0]; if (a[0] > maxX) maxX = a[0];
+      if (a[1] < minY) minY = a[1]; if (a[1] > maxY) maxY = a[1];
+    }
+    // Ja platums no gabarītiem ir lielāks par 4·laukums/perimetrs (piem., slīpa sprauga), ņem mazāko
+    const f = featureFrom(p, maxX - minX, maxY - minY, l.depth % 2 === 1);
+    if (!f.round && p > 0) f.width = Math.min(f.width, 4 * l.area / p);
+    return f;
+  });
+}
+
+/* ======================================================================
    Trijstūru tīkls (STL / OBJ / STEP)
    tris: Float32Array [x1,y1,z1, x2,y2,z2, x3,y3,z3, ...]
    ====================================================================== */
@@ -345,6 +378,7 @@ export function analyzeMesh(tris) {
   const zCut = b.minZ + Math.min(0.5, sizeZ * 0.05);
   let sliceLen = 0;
   const uf = makeUnionFind();
+  const segs = [];
 
   for (let i = 0; i < tris.length; i += 9) {
     const ax = tris[i], ay = tris[i + 1], az = tris[i + 2];
@@ -379,12 +413,30 @@ export function analyzeMesh(tris) {
     edge(bx, by, bz, cx, cy, cz);
     edge(cx, cy, cz, ax, ay, az);
     if (pts.length === 2) {
-      sliceLen += Math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]);
+      const len = Math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]);
+      sliceLen += len;
       uf.join(pts[0], pts[1]);
+      segs.push(pts[0], pts[1], len);
     }
   }
 
   volume = Math.abs(volume);
+
+  // Šķēluma cilpas → elementi (lielākā – ārējā kontūra, pārējās – caurumi)
+  const comps = new Map();
+  for (let i = 0; i < segs.length; i += 3) {
+    const r = uf.root(segs[i]);
+    let c = comps.get(r);
+    if (!c) { c = { p: 0, minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }; comps.set(r, c); }
+    c.p += segs[i + 2];
+    for (const q of [segs[i], segs[i + 1]]) {
+      if (q[0] < c.minX) c.minX = q[0]; if (q[0] > c.maxX) c.maxX = q[0];
+      if (q[1] < c.minY) c.minY = q[1]; if (q[1] > c.maxY) c.maxY = q[1];
+    }
+  }
+  const list = Array.from(comps.values()).sort((a, b) => (b.maxX - b.minX) * (b.maxY - b.minY) - (a.maxX - a.minX) * (a.maxY - a.minY));
+  const features = list.map((c, i) => featureFrom(c.p, c.maxX - c.minX, c.maxY - c.minY, i > 0));
+
   return {
     kind: '3d',
     sizeX: b.maxX - b.minX,
@@ -397,6 +449,7 @@ export function analyzeMesh(tris) {
     surfaceMm2: surface,
     lengthMm: sliceLen,
     contours: Math.max(1, uf.count()),
+    features,
     triangleCount: tris.length / 9
   };
 }
